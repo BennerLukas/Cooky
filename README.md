@@ -3,3 +3,12 @@
 #  Automatic Recipe Suggestion
 
 
+## Usage
+
+### Development: 
+
+Postgres DB with docker
+
+```bash
+docker container run -p 5432:5432 --name cooky -e POSTGRES_PASSWORD=1234 postgres:12.2 
+```
