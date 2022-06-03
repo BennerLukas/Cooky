@@ -1,20 +1,26 @@
 from dataclasses import dataclass
-from database_init import DataBase
+
+import pandas as pd
+
+from database import DataBase
 from recomender import Recommender
+
+
 @dataclass
 class Cooky:
 
     def __init__(self):
         self.db = DataBase()
-        self.n_user_id = "Peter"
+        self.n_user_id = None
         self.n_pantry_id = 1
         self.n_recipe_id = 1
 
-    def _get_data(self, table_name):
-        pass
+    def add_user(self, s_username):
+        s_sql = f" INSERT INTO users(s_username) VALUES ('{s_username}');"
+        success, result = self.db.write_sql2table(s_sql)
+        if success is not True:
+            raise
 
-    def _write_data(self, df, table_name, mode="append"):
-        pass
 
     def add_item2stock(self):
         pass
@@ -40,3 +46,8 @@ class Cooky:
         reco = Recommender()
         ranked_recipes = reco.ranking(candiates)
         return ranked_recipes
+
+
+if __name__ == "__main__":
+    cooky = Cooky()
+    cooky.add_user("Hans")
