@@ -1,13 +1,3 @@
-DROP TABLE IF EXISTS Pantry;
-DROP TABLE IF EXISTS Rankings;
-DROP TABLE IF EXISTS Recipe_Keywords;
-DROP TABLE IF EXISTS Ingredients;
-
-DROP TABLE IF EXISTS Recipes;
-DROP TABLE IF EXISTS Users;
-DROP TABLE IF EXISTS Items;
-
-
 CREATE TABLE Users
 (
     n_user_id  serial      NOT NULL,
@@ -22,38 +12,19 @@ CREATE TABLE Items
     PRIMARY KEY (n_item_id)
 );
 
-
-CREATE TABLE Recipes
-(
-    n_recipe_id    serial       NOT NULL,
-    s_recipe_title varchar(128) NOT NULL,
-    -- array_ingredients text[],
-    s_directions   varchar(4096),
-    s_link         varchar(128),
-    s_source       varchar(128),
-    array_NER      text[],
-    PRIMARY KEY (n_recipe_id)
-);
-
-CREATE TABLE Recipe_Keywords
-(
-    n_keyword_id serial       NOT NULL,
-    s_keyword    varchar(128) NOT NULL,
-    n_recipe_id  int          NOT NULL,
-    PRIMARY KEY (n_keyword_id),
-    FOREIGN KEY (n_recipe_id) REFERENCES Recipes (n_recipe_id)
-);
-
-CREATE TABLE Ingredients
-(
-    n_ingredient_id serial NOT NULL,
-    n_recipe_id     int    NOT NULL,
-    n_item_id       int    NOT NULL,
-
-    PRIMARY KEY (n_ingredient_id),
-    FOREIGN KEY (n_recipe_id) REFERENCES Recipes (n_recipe_id),
-    FOREIGN KEY (n_item_id) REFERENCES Items (n_item_id)
-);
+ALTER TABLE recipes ADD PRIMARY KEY (n_recipe_id);
+-- CREATE TABLE Recipes
+-- (
+-- --     n_recipe_id       serial       NOT NULL,
+--     n_recipe_id       int,
+--     s_recipe_title    varchar(128) NOT NULL,
+--     array_ingredients text[200],
+--     s_directions      varchar(4096),
+--     s_link            varchar(128),
+--     s_source          varchar(128),
+--     array_NER         text[],
+--     PRIMARY KEY (n_recipe_id)
+-- );
 
 CREATE TABLE Pantry
 (
@@ -69,6 +40,32 @@ CREATE TABLE Pantry
     FOREIGN KEY (n_user_id) REFERENCES USERS (n_user_id),
     FOREIGN KEY (n_item_id) REFERENCES Items (n_item_id)
 );
+
+CREATE TABLE Recipe_Keywords
+(
+    n_keyword_id serial       NOT NULL,
+    s_keyword    varchar(128) NOT NULL,
+    n_recipe_id  int          NOT NULL,
+    PRIMARY KEY (n_keyword_id),
+    FOREIGN KEY (n_recipe_id) REFERENCES Recipes (n_recipe_id)
+);
+
+CREATE TABLE Ingredients
+(
+    n_ingredient_id serial NOT NULL,
+    s_ingredient    varchar(2048) NOT NULL,
+    s_raw_ingredient    varchar(2048) NOT NULL,
+    n_recipe_id     int    NOT NULL,
+    n_item_id       int    NOT NULL,
+    s_unit_type       varchar(32), -- kg, l, mm, cups, tablespoons, ...
+    n_amount_needed int,
+
+    PRIMARY KEY (n_ingredient_id),
+    FOREIGN KEY (n_recipe_id) REFERENCES Recipes (n_recipe_id),
+    FOREIGN KEY (n_item_id) REFERENCES Items (n_item_id)
+);
+
+
 
 CREATE TABLE Rankings
 (
