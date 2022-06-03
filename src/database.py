@@ -17,9 +17,8 @@ class DataBase:
     alchemy_connection = None
     psycopg2_connection = None
 
-    dataset_file_path = "C:/Projects/Cooky/data/full_dataset.csv"
-
-    # dataset_file_path = "C:/Projects/Cooky/data/part_dataset.csv"
+    # dataset_file_path = "C:/Projects/Cooky/data/full_dataset.csv"
+    dataset_file_path = "C:/Projects/Cooky/data/part_dataset.csv"
 
     def __init__(self):
         self.connect()
@@ -113,8 +112,7 @@ class DataBase:
             return True, result
             # if SQL statement was invalid it'll be caught and database connection reestablished
         except psycopg2.errors.InFailedSqlTransaction:
-            self.b_connected = False
-            self._connect()
+            self.connect()
             logging.error("Transaction Failed - Review given inputs! Reestablished connection to database backend")
             return False, None
 
