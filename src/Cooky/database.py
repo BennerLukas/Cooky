@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 import time
 import sqlalchemy
@@ -8,6 +9,7 @@ import re
 import logging
 
 from food_extractor.food_model import FoodModel
+
 
 @dataclass
 class DataBase:
@@ -152,7 +154,7 @@ class DataBase:
         ingredients_raw_output = [x["Ingredient"] for x in output]
         ingredients_cleaned = list()
         for x in ingredients_raw_output:
-            if x:   # is not empty
+            if x:  # is not empty
                 text = ""
                 for x_part in x:
                     text += x_part["text"] + " "
@@ -165,6 +167,70 @@ class DataBase:
 
         df_ingredients["s_ingredient"] = ingredients_cleaned
 
+        # get cleaned measurements
+        raw_measurements = list()
+        amounts_needed = list()
+        s_unit_types = list()
+
+        for item, raw_ingredient in zip(ingredients_cleaned, ingredient_inputs):
+            if item is not None:
+                for item_part in item.split(" "):
+                    raw_ingredient = raw_ingredient.replace(item_part, "")
+
+            raw_measurements.append(raw_ingredient)
+
+            # split into amount and unit type:
+            raw_ingredient = raw_ingredient.lower()
+            if "c." in raw_ingredient:
+                result = re.search(".+?(?=c\.)", raw_ingredient)[0].replace(" ", "")
+                amounts_needed.append(result)
+                s_unit_types.append("cup(s)")
+
+            elif "tsp." in raw_ingredient:
+                result = re.findall(".+?(?=tsp\.)", raw_ingredient)[0].replace(" ", "")
+                amounts_needed.append(result)
+                s_unit_types.append("tsp")
+
+            elif "tbsp." in raw_ingredient:
+                result = re.findall(".+?(?=tbsp\.)", raw_ingredient)[0].replace(" ", "")
+                amounts_needed.append(result)
+                s_unit_types.append("tsp")
+
+            elif "lb." in raw_ingredient:
+                result = re.findall(".+?(?=lb\.)", raw_ingredient)[0].replace(" ", "")
+                amounts_needed.append(result)
+                s_unit_types.append("lb")
+
+            elif "pkg." in raw_ingredient:
+                result = re.findall(".+?(?=pkg\.)", raw_ingredient)[0].replace(" ", "")
+                amounts_needed.append(result)
+                s_unit_types.append("pkg")
+
+            # jar
+            elif "jar" in raw_ingredient:
+                result = re.findall(".+?(?=jar)", raw_ingredient)[0].replace(" ", "")
+                amounts_needed.append(result)
+                s_unit_types.append("jar")
+
+            elif "can" in raw_ingredient:
+                result = re.findall(".+?(?=can)", raw_ingredient)[0].replace(" ", "")
+                amounts_needed.append(result)
+                s_unit_types.append("can")
+
+            elif raw_ingredient[0].isdigit():
+                result = re.findall("\d.", raw_ingredient)[0].replace(" ", "")
+                amounts_needed.append(result)
+                s_unit_types.append("number")
+
+            else:
+                amounts_needed.append(None)
+                s_unit_types.append(None)
+
+        df_ingredients["s_raw_measurements"] = raw_measurements
+        df_ingredients["s_amount_needed"] = amounts_needed
+        df_ingredients["s_unit_type"] = s_unit_types
+
+        # get unique ingredients and put it into items table
         df_items = df_ingredients["s_ingredient"].drop_duplicates()
         df_items = df_items.rename("s_item_name")
         df_items.index.names = ["n_item_id"]

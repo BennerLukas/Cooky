@@ -16,7 +16,7 @@ docker container run -p 5432:5432 --name cooky -e POSTGRES_PASSWORD=1234 -v C:/P
 
 ```
 
-Dataset download here (https://recipenlg.cs.put.poznan.pl/dataset) and unzip it into '/data'.
+Dataset download [here](https://recipenlg.cs.put.poznan.pl/dataset) and unzip it into '/data'.
 
 
 ### Remarks
