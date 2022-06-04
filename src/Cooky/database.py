@@ -20,12 +20,13 @@ class DataBase:
     # dataset_file_path = "C:/Projects/Cooky/data/full_dataset.csv"
     dataset_file_path = "C:/Projects/Cooky/data/part_dataset.csv"
 
-    def __init__(self):
+    def __init__(self, db_init=True):
         self.connect()
-        self.del_schema()
-        df = self.read_csv()
-        self.clean_and_dump(df)
-        self.init_schema()
+        if db_init is True:
+            self.del_schema()
+            df = self.read_csv()
+            self.clean_and_dump(df)
+            self.init_schema()
 
     def connect(self):
         b_connected = False
@@ -128,14 +129,25 @@ class DataBase:
                               "s_source",
                               "array_NER"]
         df_recipes = df_recipes.set_index("n_recipe_id")
+        self.write_df2table(df_recipes, table_name="recipes")
+
         logging.info(df_recipes.head())
+
+        ################################################################################################################
 
         # make ingredients a list
         df_recipes.array_ingredients = df_recipes.array_ingredients.apply(eval)
 
         # extract all distinct raw ingredients into separate df
         df_ingredients = df_recipes.explode("array_ingredients")[["array_ingredients"]]
+        df_ingredients = df_ingredients.reset_index()
 
+        df_ingredients["s_ingredient"] = df_ingredients
+        df_ingredients["s_unit_type"] = df_ingredients
+        df_ingredients["n_amount_needed"] = df_ingredients
+        pass
+
+        import torch
         # extract measurements & amount  --> forget amounts if some is there its there...?
 
         # map ingredient to base items
@@ -157,11 +169,6 @@ class DataBase:
 
         # Definition of Done 3 (Ayman)
         # Pretty GUI
-
-        logging.info("Dump to Database")
-        res = df_recipes.to_sql("recipes", self.alchemy_connection, if_exists="append")
-        logging.info("Dump to completed")
-        logging.info(f"Response Value{res} ")
 
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@ CREATE TABLE Pantry
     n_user_id         int    NOT NULL,
     n_item_id         int    NOT NULL,
     s_unit_type       varchar(32), -- kg, l, mm, ...
-    n_amount_in_stock int,
+    f_amount_in_stock float,
     ts_creation       timestamp DEFAULT CURRENT_TIMESTAMP,
     dt_expire_date    date,
     b_in_stock        boolean   default True,
@@ -58,7 +58,7 @@ CREATE TABLE Ingredients
     n_recipe_id     int    NOT NULL,
     n_item_id       int    NOT NULL,
     s_unit_type       varchar(32), -- kg, l, mm, cups, tablespoons, ...
-    n_amount_needed int,
+    f_amount_needed float,
 
     PRIMARY KEY (n_ingredient_id),
     FOREIGN KEY (n_recipe_id) REFERENCES Recipes (n_recipe_id),

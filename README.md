@@ -17,3 +17,7 @@ docker container run -p 5432:5432 --name cooky -e POSTGRES_PASSWORD=1234 -v C:/P
 ```
 
 Dataset download here (https://recipenlg.cs.put.poznan.pl/dataset) and unzip it into '/data'.
+
+
+### Remarks
+Food_extractor is part of FoodBert and not developed by this group. Original can be found [here](https://github.com/chambliss/foodbert).
