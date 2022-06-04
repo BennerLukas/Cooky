@@ -7,6 +7,7 @@ import psycopg2.extras
 import pandas as pd
 import re
 import logging
+logging.basicConfig(level=logging.DEBUG)
 
 from food_extractor.food_model import FoodModel
 
@@ -21,6 +22,7 @@ class DataBase:
     psycopg2_connection = None
 
     # dataset_file_path = "C:/Projects/Cooky/data/full_dataset.csv"
+    # dataset_file_path = "C:/Projects/Cooky/data/big_part_dataset.csv"
     dataset_file_path = "C:/Projects/Cooky/data/part_dataset.csv"
 
     def __init__(self, db_init=True):

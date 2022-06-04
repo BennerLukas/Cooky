@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 import pandas as pd
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 from database import DataBase
 from recomender import Recommender
