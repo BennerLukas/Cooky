@@ -31,17 +31,19 @@ class Cooky:
         return self.n_user_id
 
     def get_current_stock(self):
-        pass
+        s_sql = f"SELECT * FROM pantry WHERE n_user_id = {self.n_user_id};"
+        df = self.db.get_data_from_table("pantry", b_full_table=False, s_query=s_sql)
+        return df
 
     def cook_meal(self):
         pass
 
-    def possible_recipes(self, s_user_input):
+    def possible_recipes(self, s_user_input):   # TODO MAKI, MAVI
         candidates = list()
 
         return candidates
 
-    def meal_reco(self, s_user_input=None):
+    def meal_reco(self, s_user_input=None):      # TODO MAKI, MAVI
         # Current User Input
 
         # Check available recipes
@@ -57,3 +59,4 @@ if __name__ == "__main__":
     cooky = Cooky()
     cooky.add_user("Hans")
     cooky.add_item2stock(1, "kg", 1)
+    print(cooky.get_current_stock().head())
