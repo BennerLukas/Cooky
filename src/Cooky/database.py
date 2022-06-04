@@ -7,6 +7,7 @@ import pandas as pd
 import re
 import logging
 
+from food_extractor.food_model import FoodModel
 
 @dataclass
 class DataBase:
@@ -25,7 +26,8 @@ class DataBase:
         if db_init is True:
             self.del_schema()
             df = self.read_csv()
-            self.clean_and_dump(df)
+            df_recipes = self.dump_recipes(df)
+            df_ingredients = self.dump_ingredients(df_recipes)
             self.init_schema()
 
     def connect(self):
@@ -123,52 +125,56 @@ class DataBase:
         logging.info("Read Finished")
         return df
 
-    def clean_and_dump(self, df_recipes):
+    def dump_recipes(self, df):
 
-        df_recipes.columns = ["n_recipe_id", "s_recipe_title", "array_ingredients", "s_directions", "s_link",
-                              "s_source",
-                              "array_NER"]
-        df_recipes = df_recipes.set_index("n_recipe_id")
+        df.columns = ["n_recipe_id", "s_recipe_title", "array_ingredients", "s_directions", "s_link",
+                      "s_source", "array_NER"]
+        df_recipes = df.set_index("n_recipe_id")
         self.write_df2table(df_recipes, table_name="recipes")
 
         logging.info(df_recipes.head())
+        return df_recipes
 
-        ################################################################################################################
+    def dump_ingredients(self, df_recipes):
 
         # make ingredients a list
         df_recipes.array_ingredients = df_recipes.array_ingredients.apply(eval)
 
-        # extract all distinct raw ingredients into separate df
+        # extract all raw ingredients into separate df
         df_ingredients = df_recipes.explode("array_ingredients")[["array_ingredients"]]
         df_ingredients = df_ingredients.reset_index()
 
-        df_ingredients["s_ingredient"] = df_ingredients
-        df_ingredients["s_unit_type"] = df_ingredients
-        df_ingredients["n_amount_needed"] = df_ingredients
-        pass
+        ingredient_inputs = df_ingredients.array_ingredients.to_list()
+        model = FoodModel("chambliss/distilbert-for-food-extraction")
 
-        import torch
-        # extract measurements & amount  --> forget amounts if some is there its there...?
+        output = model.extract_foods(ingredient_inputs)
 
-        # map ingredient to base items
+        ingredients_raw_output = [x["Ingredient"] for x in output]
+        ingredients_cleaned = list()
+        for x in ingredients_raw_output:
+            if x:   # is not empty
+                text = ""
+                for x_part in x:
+                    text += x_part["text"] + " "
+                ingredients_cleaned.append(text)
+            else:
+                ingredients_cleaned.append(None)
 
-        # new feature meta-tag (style, culture, veggie)
+        if df_ingredients.shape[0] != len(ingredients_cleaned):
+            raise
 
-        # length of direction text => complexity
+        df_ingredients["s_ingredient"] = ingredients_cleaned
 
-        # Definition of Done 1
-        # Add, Del Items to pantry
-        # Cook recipe - remove items
-        # get_data_from_table
-        # write_to_table
+        df_items = df_ingredients["s_ingredient"].drop_duplicates()
+        df_items = df_items.rename("s_item_name")
+        df_items.index.names = ["n_item_id"]
 
-        # Check if cook-able
+        self.write_df2table(df_items, table_name="items")
 
-        # Definition of Done 2
-        # User Input ->  possible prefiltering with tags -> check for valid recipes -> rank for specific user -> output recipe
+        df_ingredients.index.names = ["n_ingredient_id"]
+        self.write_df2table(df_ingredients, table_name="ingredients")
 
-        # Definition of Done 3 (Ayman)
-        # Pretty GUI
+        return df_ingredients
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ class Cooky:
         return self.n_user_id
 
     def add_item2stock(self, n_item_id, s_unit_type, n_amount_in_stock):
-        s_sql = f" INSERT INTO pantry(n_user_id, n_item_id, s_unit_type, n_amount_in_stock) VALUES ('{self.n_user_id}', '{n_item_id}', '{s_unit_type}', '{n_amount_in_stock}') RETURNING n_pantry_id;"
+        s_sql = f" INSERT INTO pantry(n_user_id, n_item_id, s_unit_type, f_amount_in_stock) VALUES ('{self.n_user_id}', '{n_item_id}', '{s_unit_type}', '{n_amount_in_stock}') RETURNING n_pantry_id;"
         success, result = self.db.write_sql2table(s_sql)
         if success is not True:
             raise
