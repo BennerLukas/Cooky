@@ -24,7 +24,7 @@ class DataBase:
     # dataset_file_path = "C:/Projects/Cooky/data/full_dataset.csv"
     # dataset_file_path = "C:/Projects/Cooky/data/big_part_dataset.csv"
     dataset_file_path = "C:/Projects/Cooky/data/part_dataset.csv"
-    dataset_file_path = "../../data/part_dataset.csv"
+    dataset_file_path = "data/part_dataset.csv"
 
     def __init__(self, db_init=True):
         self.connect()
@@ -59,7 +59,7 @@ class DataBase:
         return True
 
     def del_schema(self):
-        s_sql_statement = open("../../db/del.sql", "r").read()
+        s_sql_statement = open("db/del.sql", "r").read()
 
         # cleaning file from comments and escape functions
         s_sql_statement = re.sub(r"--.*|\n|\t", " ", s_sql_statement)
@@ -67,7 +67,7 @@ class DataBase:
         logging.debug(res)
 
     def init_schema(self):
-        s_sql_statement = open("../../db/init.sql", "r").read()
+        s_sql_statement = open("db/init.sql", "r").read()
 
         # cleaning file from comments and escape functions
         s_sql_statement = re.sub(r"--.*|\n|\t", " ", s_sql_statement)
@@ -173,6 +173,7 @@ class DataBase:
         # get cleaned measurements
         raw_measurements = list()
         amounts_needed = list()
+        f_amounts_needed =list()
         s_unit_types = list()
 
         for item, raw_ingredient in zip(ingredients_cleaned, ingredient_inputs):
@@ -227,10 +228,30 @@ class DataBase:
 
             else:
                 amounts_needed.append(None)
+                f_amounts_needed.append(None)
                 s_unit_types.append(None)
+                continue
+
+            try:
+                f_amounts_needed.append(float(result))
+            except ValueError:
+                try:
+                    f_amounts_needed.append(eval(result))
+                except SyntaxError:
+                    try:
+                        search_pattern = "^[^\d]*(\d+)"
+                        result = re.findall(search_pattern, result)
+                        f_result = float(result[0])
+                        f_amounts_needed.append(f_result)
+
+                    except:
+                        f_amounts_needed.append(None)
+
+                # TODO transfer all in float!
 
         df_ingredients["s_raw_measurements"] = raw_measurements
         df_ingredients["s_amount_needed"] = amounts_needed
+        df_ingredients["f_amount_needed"] = f_amounts_needed
         df_ingredients["s_unit_type"] = s_unit_types
 
         # get unique ingredients and put it into items table
