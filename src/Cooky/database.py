@@ -7,7 +7,7 @@ import psycopg2.extras
 import pandas as pd
 import re
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 from food_extractor.food_model import FoodModel
 
@@ -24,6 +24,7 @@ class DataBase:
     # dataset_file_path = "C:/Projects/Cooky/data/full_dataset.csv"
     # dataset_file_path = "C:/Projects/Cooky/data/big_part_dataset.csv"
     dataset_file_path = "C:/Projects/Cooky/data/part_dataset.csv"
+    dataset_file_path = "../../data/part_dataset.csv"
 
     def __init__(self, db_init=True):
         self.connect()
@@ -58,7 +59,7 @@ class DataBase:
         return True
 
     def del_schema(self):
-        s_sql_statement = open("../db/del.sql", "r").read()
+        s_sql_statement = open("../../db/del.sql", "r").read()
 
         # cleaning file from comments and escape functions
         s_sql_statement = re.sub(r"--.*|\n|\t", " ", s_sql_statement)
@@ -66,7 +67,7 @@ class DataBase:
         logging.debug(res)
 
     def init_schema(self):
-        s_sql_statement = open("../db/init.sql", "r").read()
+        s_sql_statement = open("../../db/init.sql", "r").read()
 
         # cleaning file from comments and escape functions
         s_sql_statement = re.sub(r"--.*|\n|\t", " ", s_sql_statement)
@@ -233,8 +234,8 @@ class DataBase:
         df_ingredients["s_unit_type"] = s_unit_types
 
         # get unique ingredients and put it into items table
-        df_items = df_ingredients["s_ingredient"].drop_duplicates()
-        df_items = df_items.rename("s_item_name")
+        df_items = df_ingredients[["s_ingredient", "s_unit_type"]].drop_duplicates()
+        df_items = df_items.rename({"s_ingredient": "s_item_name"})
         df_items.index.names = ["n_item_id"]
 
         self.write_df2table(df_items, table_name="items")

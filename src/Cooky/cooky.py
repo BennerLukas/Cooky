@@ -25,40 +25,89 @@ class Cooky:
         return self.n_user_id
 
     def add_item2stock(self, n_item_id, s_unit_type, n_amount_in_stock):
-        s_sql = f" INSERT INTO pantry(n_user_id, n_item_id, s_unit_type, f_amount_in_stock) VALUES ('{self.n_user_id}', '{n_item_id}', '{s_unit_type}', '{n_amount_in_stock}') RETURNING n_pantry_id;"
+        # TODO get unit_type from item table
+        s_sql = f" INSERT INTO pantry(n_user_id, n_item_id, s_unit_type, f_amount_in_stock) VALUES ('{self.n_user_id}','{n_item_id}', '{s_unit_type}', '{n_amount_in_stock}') RETURNING n_pantry_id;"
         success, result = self.db.write_sql2table(s_sql)
         if success is not True:
             raise
-        self.n_user_id = result[0][0]
-        return self.n_user_id
+        return result[0][0]
 
     def get_current_stock(self):
         s_sql = f"SELECT * FROM pantry WHERE n_user_id = {self.n_user_id};"
         df = self.db.get_data_from_table("pantry", b_full_table=False, s_query=s_sql)
         return df
 
-    def cook_meal(self):
+    def get_all_recipe_ids(self):
+        s_sql = f"SELECT DISTINCT n_recipe_id FROM recipes;"
+        df = self.db.get_data_from_table("recipes", b_full_table=False, s_query=s_sql)
+        return df
+
+    def reduce_stock(self, n_item_id, n_amount_needed):
+        s_sql = f"SELECT * FROM pantry WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
+        df = self.db.get_data_from_table("pantry", b_full_table=False, s_query=s_sql)
+        if len(df.f_amount_in_stock) != 1:
+            raise
+        new_amount = df.f_amount_in_stock.to_list()[0] - n_amount_needed
+        if new_amount < 0:
+            new_amount = 0
+
+        s_sql = f"UPDATE pantry SET f_amount_in_stock = {new_amount}  WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
+        self.db.write_sql2table(s_sql)
+
+    def cook_meal(self, n_recipe_id):    # remove stock
+        s_sql = f"SELECT * FROM ingredients WHERE n_recipe_id = {n_recipe_id};"
+        df_needed_ingredients = self.db.get_data_from_table("ingredients", b_full_table=False, s_query=s_sql)
+
+        my_stock = self.get_current_stock().n_item_id.to_list()
+
+        # TODO reduce every item in stock by amount needed in recipe
         pass
 
-    def possible_recipes(self, s_user_input):   # TODO MAKI, MAVI
+    def _possible_recipes(self):
         candidates = list()
+        my_stock = self.get_current_stock().n_item_id.to_list()
+        recipe_ids = self.get_all_recipe_ids().n_recipe_id.to_list()
+        for recipe_id in recipe_ids:
+            s_sql = f"SELECT * FROM ingredients WHERE n_recipe_id = {recipe_id};"
+            df_needed_ingredients = self.db.get_data_from_table("ingredients", b_full_table=False, s_query=s_sql)
+
+            # check if in stock
+            missing_items = list()
+            found_items = list()
+            for ingredient in df_needed_ingredients.n_ingredient_id.to_list():
+                if ingredient in my_stock:
+                    found_items.append(ingredient)
+                else:
+                    missing_items.append(ingredient)
+            if len(missing_items) > 0:
+                logging.info("Recipe not possible to cook")
+                continue
+
+            candidates.append(recipe_id)
 
         return candidates
 
-    def meal_reco(self, s_user_input=None):      # TODO MAKI, MAVI
+    def meal_reco(self):      # TODO MAKI, MAVI
         # Current User Input
 
         # Check available recipes
-        candiates = self.possible_recipes(s_user_input)
+        candidates = self._possible_recipes()
 
         # Rank recipes
         reco = Recommender()
-        ranked_recipes = reco.ranking(candiates)
+        ranked_recipes = reco.ranking(candidates)
         return ranked_recipes
 
 
 if __name__ == "__main__":
     cooky = Cooky()
     cooky.add_user("Hans")
-    cooky.add_item2stock(1, "kg", 1)
+    for i in range(0, 70):
+        try:
+            cooky.add_item2stock(i, "kg", 1)
+        except:
+            continue
+    cooky.reduce_stock(1, 1)
     print(cooky.get_current_stock().head())
+    cooky.meal_reco()
+    pass
