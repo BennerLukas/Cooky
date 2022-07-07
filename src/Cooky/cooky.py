@@ -112,6 +112,7 @@ if __name__ == "__main__":
         try:
             cooky.add_item2stock(i, 1)
         except:
+            logging.debug("Exception triggered")
             continue
     cooky.reduce_stock(1, 1)
     print(cooky.get_current_stock().head())
