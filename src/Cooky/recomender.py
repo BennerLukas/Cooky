@@ -35,7 +35,8 @@ class Recommender:
         # write users to db
         df_users = pd.DataFrame(df["User-ID"].unique(), columns=["n_user_id"])
         df_users["s_username"] = "synth-user"
-        self.db.write_df2table(df_users[["n_user_id", "s_username"]], "users")
+        df_users = df_users.set_index("n_user_id")
+        self.db.write_df2table(df_users, "users")
 
         return True
 
