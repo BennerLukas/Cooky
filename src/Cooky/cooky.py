@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import pandas as pd
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 from database import DataBase
@@ -37,6 +38,10 @@ class Cooky:
             raise
         return result[0][0]
 
+    def get_all_items(self):
+        df = self.db.get_data_from_table("items", b_full_table=True)
+        return df
+
     def get_current_stock(self):
         s_sql = f"SELECT * FROM pantry WHERE n_user_id = {self.n_user_id};"
         df = self.db.get_data_from_table("pantry", b_full_table=False, s_query=s_sql)
@@ -47,19 +52,19 @@ class Cooky:
         df = self.db.get_data_from_table("recipes", b_full_table=False, s_query=s_sql)
         return df
 
-    def reduce_stock(self, n_item_id, n_amount_needed):
+    def reduce_stock(self, n_item_id, n_amount_to_reduce):
         s_sql = f"SELECT * FROM pantry WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
         df = self.db.get_data_from_table("pantry", b_full_table=False, s_query=s_sql)
         if len(df.f_amount_in_stock) != 1:
             raise
-        new_amount = df.f_amount_in_stock.to_list()[0] - n_amount_needed
+        new_amount = df.f_amount_in_stock.to_list()[0] - n_amount_to_reduce
         if new_amount < 0:
             new_amount = 0
 
         s_sql = f"UPDATE pantry SET f_amount_in_stock = {new_amount}  WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
         self.db.write_sql2table(s_sql)
 
-    def cook_meal(self, n_recipe_id):    # remove stock
+    def cook_meal(self, n_recipe_id):  # remove stock
         s_sql = f"SELECT * FROM ingredients WHERE n_recipe_id = {n_recipe_id};"
         df_needed_ingredients = self.db.get_data_from_table("ingredients", b_full_table=False, s_query=s_sql)
 
@@ -70,18 +75,24 @@ class Cooky:
 
     def _possible_recipes(self):
         candidates = list()
-        my_stock = self.get_current_stock().n_item_id.to_list()
+        my_stock = self.get_current_stock()
         recipe_ids = self.get_all_recipe_ids().n_recipe_id.to_list()
         for recipe_id in recipe_ids:
             s_sql = f"SELECT * FROM ingredients WHERE n_recipe_id = {recipe_id};"
             df_needed_ingredients = self.db.get_data_from_table("ingredients", b_full_table=False, s_query=s_sql)
-
             # check if in stock
             missing_items = list()
             found_items = list()
             for ingredient in df_needed_ingredients.n_ingredient_id.to_list():
-                if ingredient in my_stock:
-                    found_items.append(ingredient)
+                if ingredient in my_stock.n_item_id.to_list():
+                    amount_needed = float(df_needed_ingredients.loc[df_needed_ingredients["n_ingredient_id"] == ingredient].f_amount_needed)
+                    amount_available = float(my_stock.loc[my_stock["n_item_id"] == ingredient].f_amount_in_stock)
+                    if amount_needed <= amount_available:
+                        found_items.append(ingredient)
+                    else:
+                        logging.debug(f"Ingredient {ingredient} found but was not enough")
+                        missing_items.append(ingredient)
+
                 else:
                     missing_items.append(ingredient)
             if len(missing_items) > 0:
@@ -93,24 +104,68 @@ class Cooky:
 
         return candidates
 
-    def meal_reco(self):      # TODO MAKI, MAVI
+    def meal_reco(self):  # TODO MAKI, MAVI
         # Current User Input
 
         # Check available recipes
         candidates = self._possible_recipes()
 
         # Rank recipes
-        reco = Recommender()
+        reco = Recommender(self.db)
         ranked_recipes = reco.ranking(candidates)
         return ranked_recipes
+
+    @staticmethod
+    def usage():
+        add_user = "cooky.add_user('Hans')"
+        add_item = "cooky.add_item2stock(10, 1)"
+
+        get_items = "cooky.get_all_items()"
+        get_current_stock = "cooky.get_current_stock()"
+
+        reduce_stock = "cooky.reduce_stock(1, 0.5)"
+        cook_meal = "cooky.cook_meal(1)"
+
+        meal_reco = "cooky.meal_reco()"
+
+        msg = f"""
+
+   _____            _          
+  / ____|          | |         
+ | |     ___   ___ | | ___   _ 
+ | |    / _ \ / _ \| |/ / | | |
+ | |___| (_) | (_) |   <| |_| |
+  \_____\___/ \___/|_|\_\\__, |
+                          __/ |
+                         |___/ 
+
+(c) 2022 - Seems-Inc.de
+
+------ Example for callable functions ------
+cooky = Cooky()
+
+{add_user}
+{add_item}
+
+{get_items}
+{get_current_stock}
+
+{reduce_stock}
+{cook_meal}
+{meal_reco}
+
+"""
+        logging.info(msg)
+        return msg
 
 
 if __name__ == "__main__":
     cooky = Cooky()
+    cooky.usage()
     cooky.add_user("Hans")
-    for i in range(0, 70):
+    for i in range(0, 150):
         try:
-            cooky.add_item2stock(i, 1)
+            cooky.add_item2stock(i, 10)
         except:
             logging.debug("Exception triggered")
             continue
