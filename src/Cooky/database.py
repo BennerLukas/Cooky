@@ -26,7 +26,7 @@ class DataBase:
     # dataset_file_path = "C:/Projects/Cooky/data/full_dataset.csv"
     # dataset_file_path = "C:/Projects/Cooky/data/big_part_dataset.csv"
     dataset_file_path = "C:/Projects/Cooky/data/part_dataset.csv"
-    dataset_file_path = "./data/part_dataset.csv"
+    dataset_file_path = "../data/part_dataset.csv"
 
     def __init__(self, db_init=True):
         self.connect()
@@ -63,7 +63,7 @@ class DataBase:
         return True
 
     def del_schema(self):
-        s_sql_statement = open("./db/del.sql", "r").read()
+        s_sql_statement = open("../db/del.sql", "r").read()
 
         # cleaning file from comments and escape functions
         s_sql_statement = re.sub(r"--.*|\n|\t", " ", s_sql_statement)
@@ -71,7 +71,7 @@ class DataBase:
         logging.debug(res)
 
     def init_schema(self):
-        s_sql_statement = open("./db/init.sql", "r").read()
+        s_sql_statement = open("../db/init.sql", "r").read()
 
         # cleaning file from comments and escape functions
         s_sql_statement = re.sub(r"--.*|\n|\t", " ", s_sql_statement)
