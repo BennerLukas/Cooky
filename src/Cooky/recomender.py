@@ -48,8 +48,17 @@ class Recommender:
         return True
 
     def create_spark_session(self):
-        self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()
-        # os.environ["HADOOP_HOME"] = r"C:\tmp"
+        # self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()
+        os.environ["HADOOP_HOME"] = "C:/tmp"
+
+        # .master("spark://localhost:7077") \
+
+        self.spark = pyspark.sql.SparkSession \
+            .builder \
+            .appName("Cooky") \
+            .getOrCreate()
+        sc = self.spark.sparkContext
+
         return self.spark
 
     def train_als(self):
@@ -70,7 +79,7 @@ class Recommender:
             userCol="n_user_id",
             itemCol="n_recipe_id",
             ratingCol="n_rating",
-            coldStartStrategy="",
+            coldStartStrategy="drop",
             nonnegative=True,
             implicitPrefs=False,
             seed=123

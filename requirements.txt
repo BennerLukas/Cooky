@@ -1,5 +1,5 @@
-pytorch # (pytorch for anaconda)
-# torch # (torch for pip)
+# pytorch # (pytorch for anaconda)
+torch # (torch for pip)
 transformers
 matplotlib
 pyspark
