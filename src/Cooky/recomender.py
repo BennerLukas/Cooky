@@ -1,6 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import pyspark
+from pyspark.ml.recommendation import ALS, ALSModel
+from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.sql import functions as F
+import os
 
 
 class Recommender:
@@ -45,21 +49,17 @@ class Recommender:
 
     def create_spark_session(self):
         self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()
+        os.environ["HADOOP_HOME"] = "C:\tmp"
         return self.spark
 
     def calc_als(self):
+        self.create_spark_session()
+
         df = self.db.get_data_from_table("ratings", b_full_table=True)
-
-        s_sql = "SELECT DISTINCT n_recipe_id FROM recipes"
-        recipes = self.db.get_data_from_table("recipes", b_full_table=False, s_query=s_sql)  # aka items
-
-        s_sql = "SELECT DISTINCT n_user_id FROM users"
-        users = self.db.get_data_from_table("users", b_full_table=False, s_query=s_sql)
 
         # convert to pyspark
         pdf_ratings = self.spark.createDataFrame(df)
-        pdf_recipes = self.spark.createDataFrame(recipes)
-        pdf_users = self.spark.createDataFrame(users)
+
 
         pass
 
@@ -67,6 +67,6 @@ class Recommender:
 if __name__ == "__main__":
     from database import DataBase
 
-    obj = Recommender(DataBase())
+    obj = Recommender(DataBase(False))
     # obj.generate_synthetic_user_data()
-    obj.calc_recos()
+    obj.calc_als()

@@ -1,0 +1,7 @@
+pytorch # (pytorch for anaconda)
+transformers
+matplotlib
+pyspark
+sqlalchemy
+psycopg2
+pandas
