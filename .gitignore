@@ -135,3 +135,4 @@ dmypy.json
 /.idea/vcs.xml
 /.idea/dataSources.xml
 /.idea/sqldialects.xml
+/src/data/full_dataset.csv

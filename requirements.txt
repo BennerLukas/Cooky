@@ -1,7 +1,8 @@
 pytorch # (pytorch for anaconda)
+# torch # (torch for pip)
 transformers
 matplotlib
 pyspark
 sqlalchemy
-psycopg2
+psycopg2 # ( for anaconda: conda install -c conda-forge psycopg2-binary )
 pandas

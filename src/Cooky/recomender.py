@@ -49,10 +49,10 @@ class Recommender:
 
     def create_spark_session(self):
         self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()
-        os.environ["HADOOP_HOME"] = "C:\tmp"
+        # os.environ["HADOOP_HOME"] = r"C:\tmp"
         return self.spark
 
-    def calc_als(self):
+    def train_als(self):
         self.create_spark_session()
 
         df = self.db.get_data_from_table("ratings", b_full_table=True)
@@ -60,8 +60,36 @@ class Recommender:
         # convert to pyspark
         pdf_ratings = self.spark.createDataFrame(df)
 
+        (train, test) = pdf_ratings.randomSplit([0.7, 0.3], seed=123)
 
-        pass
+        als = ALS(
+            rank=10,
+            maxIter=5,
+            regParam=0.01,
+            alpha=1,
+            userCol="n_user_id",
+            itemCol="n_recipe_id",
+            ratingCol="n_rating",
+            coldStartStrategy="",
+            nonnegative=True,
+            implicitPrefs=False,
+            seed=123
+        )
+
+        model = als.fit(train)
+
+        pred = model.transform(test)
+        eval = RegressionEvaluator(metricName="RMSE", labelCol="n_rating", predictionCol="prediction")
+        rmse = eval.evaluate(pred)
+
+        print(rmse)
+
+        model.write().overwrite().save("../data/model/als_v1")
+        return model
+
+    def reco_als(self, model: ALSModel, user_dataset, n_recos=3):
+        user_recos = model.recommendForUserSubset(user_dataset, n_recos)
+        return user_recos
 
 
 if __name__ == "__main__":
@@ -69,4 +97,4 @@ if __name__ == "__main__":
 
     obj = Recommender(DataBase(False))
     # obj.generate_synthetic_user_data()
-    obj.calc_als()
+    obj.train_als()
