@@ -11,8 +11,8 @@ from recomender import Recommender
 @dataclass
 class Cooky:
 
-    def __init__(self):
-        self.db = DataBase()
+    def __init__(self, init_db=True):
+        self.db = DataBase(init_db)
         self.n_user_id = None
         self.reco = Recommender(self.db)
 
@@ -27,7 +27,7 @@ class Cooky:
         return self.n_user_id
 
     def add_item2stock(self, n_item_id, n_amount_in_stock):
-        # TODO get unit_type from item table
+
         s_sql = f"SELECT s_unit_type FROM ingredients WHERE n_ingredient_id = {n_item_id}"
         df = self.db.get_data_from_table("ingredients", b_full_table=False, s_query=s_sql)
 
@@ -131,7 +131,8 @@ class Cooky:
         reduce_stock = "cooky.reduce_stock(1, 0.5)"
         cook_meal = "cooky.cook_meal(1)"
 
-        meal_reco = "cooky.meal_reco()"
+        meal_reco = "cooky.meal_reco_by_pantry()"
+        meal_reco2 = "cooky.meal_reco_without_pantry()"
 
         msg = f"""
 
@@ -158,6 +159,7 @@ cooky = Cooky()
 {reduce_stock}
 {cook_meal}
 {meal_reco}
+{meal_reco2}
 
 """
         logging.info(msg)
@@ -179,5 +181,5 @@ if __name__ == "__main__":
     print(cooky.get_current_stock().head())
     meals = cooky.meal_reco_by_pantry()
     meals2 = cooky.meal_reco_without_pantry()
-    cooky.cook_meal(meals[0])
+    cooky.cook_meal(meals.n_recipe_id.to_list()[0])
     pass
