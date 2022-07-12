@@ -250,8 +250,6 @@ class DataBase:
                     except:
                         f_amounts_needed.append(None)
 
-                # TODO transfer all in float!
-
         df_ingredients["s_raw_measurements"] = raw_measurements
         df_ingredients["s_amount_needed"] = amounts_needed
         df_ingredients["f_amount_needed"] = f_amounts_needed
