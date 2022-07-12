@@ -29,11 +29,12 @@ class Recommender:
         result = reco_recipes.loc[reco_recipes["n_recipe_id"].isin(matches)].sort_values(by="rating", ascending=False)
         return result
 
-    def create_spark_session(self):
+    def create_spark_session(self, custom_user="lukas"):
         # self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()      # TODO make flexible
-        os.environ["HADOOP_HOME"] = r"C:\Users\lukas\spark-3.3.0-bin-hadoop3"
-        os.environ["JAVA_HOME"] = r"C:\Program Files\Java\jre1.8.0_333"
-        os.environ["PYSPARK_PYTHON"] = "python"
+        if custom_user == "lukas":
+            os.environ["HADOOP_HOME"] = r"C:\Users\lukas\spark-3.3.0-bin-hadoop3"
+            os.environ["JAVA_HOME"] = r"C:\Program Files\Java\jre1.8.0_333"
+            os.environ["PYSPARK_PYTHON"] = "python"
 
         # .master("spark://localhost:7077") \
 

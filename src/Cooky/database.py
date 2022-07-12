@@ -22,10 +22,7 @@ class DataBase:
     alchemy_connection = None
     psycopg2_connection = None
 
-    # dataset_file_path = "C:/Projects/Cooky/data/full_dataset.csv"
-    # dataset_file_path = "C:/Projects/Cooky/data/big_part_dataset.csv"
-    # dataset_file_path = "C:/Projects/Cooky/data/part_dataset.csv"
-    dataset_file_path = "./data/part_dataset.csv"       # TODO test with big dataset
+    # dataset_file_path = "./data/part_dataset.csv"
     dataset_file_path = "./data/big_part_dataset.csv"
 
     def __init__(self, db_init=True):
