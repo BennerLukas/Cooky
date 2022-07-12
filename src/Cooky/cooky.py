@@ -14,6 +14,7 @@ class Cooky:
     def __init__(self):
         self.db = DataBase()
         self.n_user_id = None
+        self.reco = Recommender(self.db)
 
     def add_user(self, s_username):
 
@@ -104,15 +105,18 @@ class Cooky:
 
         return candidates
 
-    def meal_reco(self):  # TODO MAKI, MAVI
+    def meal_reco_without_pantry(self):
+        pass        # TODO
+
+    def meal_reco_by_pantry(self):  # TODO
         # Current User Input
 
         # Check available recipes
         candidates = self._possible_recipes()
 
         # Rank recipes
-        reco = Recommender(self.db)
-        ranked_recipes = reco.ranking(candidates)
+
+        ranked_recipes = self.reco.ranking(candidates, self.n_user_id)
         return ranked_recipes
 
     @staticmethod

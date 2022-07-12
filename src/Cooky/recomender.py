@@ -5,18 +5,22 @@ from pyspark.ml.recommendation import ALS, ALSModel
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.sql import functions as F
 import os
+from database import DataBase
 
 
 class Recommender:
 
-    def __init__(self, db):
+    def __init__(self, db: DataBase):
         self.db = db
         self.spark = None
 
-    def ranking(self, candidate_recipes):
-        sorted_candidates = candidate_recipes
+    def ranking(self, candidate_recipes, n_user_id):
+
+        s_sql = f"SELECT * FROM recos WHERE n_user_id = {n_user_id}"
+        reco_recipes = self.db.get_data_from_table("recos", b_full_table=False, s_query=s_sql)
+
         # TODO
-        return sorted_candidates
+        return
 
     def generate_synthetic_user_data(self):
         df_recipes = self.db.get_data_from_table("recipes", b_full_table=True)
@@ -49,7 +53,9 @@ class Recommender:
 
     def create_spark_session(self):
         # self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()
-        os.environ["HADOOP_HOME"] = "C:/tmp"
+        os.environ["HADOOP_HOME"] = r"C:\Users\lukas\spark-3.3.0-bin-hadoop3"
+        os.environ["JAVA_HOME"] = r"C:\Program Files\Java\jre1.8.0_333"
+        os.environ["PYSPARK_PYTHON"] = "python"
 
         # .master("spark://localhost:7077") \
 
@@ -73,7 +79,7 @@ class Recommender:
 
         als = ALS(
             rank=10,
-            maxIter=5,
+            maxIter=10,
             regParam=0.01,
             alpha=1,
             userCol="n_user_id",
@@ -88,17 +94,24 @@ class Recommender:
         model = als.fit(train)
 
         pred = model.transform(test)
-        eval = RegressionEvaluator(metricName="RMSE", labelCol="n_rating", predictionCol="prediction")
+        eval = RegressionEvaluator(metricName="rmse", labelCol="n_rating", predictionCol="prediction")
         rmse = eval.evaluate(pred)
 
         print(rmse)
 
-        model.write().overwrite().save("../data/model/als_v1")
+        # model.write().overwrite().save("../data/model")
         return model
 
-    def reco_als(self, model: ALSModel, user_dataset, n_recos=3):
-        user_recos = model.recommendForUserSubset(user_dataset, n_recos)
-        return user_recos
+    def reco_als(self, model: ALSModel, n_recos=10):
+        # user_recos = model.recommendForUserSubset(user_dataset, n_recos)
+        user_recos = model.recommendForAllUsers(n_recos)
+
+        user_recos_exploded = user_recos.withColumn("reco", F.explode("recommendations")).select("n_user_id", F.col("reco.n_recipe_id"), F.col("reco.rating"))
+        user_recos_exploded = user_recos_exploded.where(F.col("rating") > 0)
+
+        df_user_recos_exploded = user_recos_exploded.toPandas()
+        self.db.write_df2table(df_user_recos_exploded, "recos", mode="overwrite")
+        return df_user_recos_exploded
 
 
 if __name__ == "__main__":
@@ -106,4 +119,6 @@ if __name__ == "__main__":
 
     obj = Recommender(DataBase(False))
     # obj.generate_synthetic_user_data()
-    obj.train_als()
+    model = obj.train_als()
+    reco = obj.reco_als(model)
+    pass
