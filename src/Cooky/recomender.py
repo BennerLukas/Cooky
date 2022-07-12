@@ -5,14 +5,17 @@ from pyspark.ml.recommendation import ALS, ALSModel
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.sql import functions as F
 import os
-from database import DataBase
 
 
 class Recommender:
 
-    def __init__(self, db: DataBase):
+    def __init__(self, db):
         self.db = db
         self.spark = None
+        self.model = None
+
+        self.train_als()
+        self.reco_als()
 
     def ranking(self, candidate_recipes, n_user_id):
 
@@ -22,34 +25,7 @@ class Recommender:
         # TODO
         return
 
-    def generate_synthetic_user_data(self):
-        df_recipes = self.db.get_data_from_table("recipes", b_full_table=True)
-        max_recipe_id = df_recipes.n_recipe_id.max()
 
-        df = pd.read_csv("../data/BX-Book-Ratings.csv", sep=";", encoding='CP1252', escapechar='\\')
-        df = df[df["Book-Rating"] != 0]
-
-        df_lookup = pd.DataFrame(df.ISBN.unique(), columns=["ISBN"])
-        df_lookup["n_recipe_id"] = df_lookup.index
-        df_lookup = df_lookup.where(df_lookup["n_recipe_id"] <= max_recipe_id)
-
-        df_joined = df.merge(df_lookup, on="ISBN", how="inner")
-
-        df_final = df_joined.drop(columns=["ISBN"])
-        df_final = df_final.rename(columns={
-            "User-ID": "n_user_id",
-            "Book-Rating": "n_rating",
-        })
-
-        self.db.write_df2table(df_final, "ratings")
-
-        # write users to db
-        df_users = pd.DataFrame(df["User-ID"].unique(), columns=["n_user_id"])
-        df_users["s_username"] = "synth-user"
-        df_users = df_users.set_index("n_user_id")
-        self.db.write_df2table(df_users, "users")
-
-        return True
 
     def create_spark_session(self):
         # self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()
@@ -100,11 +76,14 @@ class Recommender:
         print(rmse)
 
         # model.write().overwrite().save("../data/model")
+        self.model = model
         return model
 
-    def reco_als(self, model: ALSModel, n_recos=10):
+    def reco_als(self, n_recos=10):
+        if self.model is None:
+            raise
         # user_recos = model.recommendForUserSubset(user_dataset, n_recos)
-        user_recos = model.recommendForAllUsers(n_recos)
+        user_recos = self.model.recommendForAllUsers(n_recos)
 
         user_recos_exploded = user_recos.withColumn("reco", F.explode("recommendations")).select("n_user_id", F.col("reco.n_recipe_id"), F.col("reco.rating"))
         user_recos_exploded = user_recos_exploded.where(F.col("rating") > 0)
@@ -120,5 +99,5 @@ if __name__ == "__main__":
     obj = Recommender(DataBase(False))
     # obj.generate_synthetic_user_data()
     model = obj.train_als()
-    reco = obj.reco_als(model)
+    reco = obj.reco_als()
     pass

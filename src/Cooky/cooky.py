@@ -107,6 +107,7 @@ class Cooky:
 
     def meal_reco_without_pantry(self):
         pass        # TODO
+        recos = self.db.get_data_from_table("recos")
 
     def meal_reco_by_pantry(self):  # TODO
         # Current User Input
@@ -115,7 +116,6 @@ class Cooky:
         candidates = self._possible_recipes()
 
         # Rank recipes
-
         ranked_recipes = self.reco.ranking(candidates, self.n_user_id)
         return ranked_recipes
 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
             continue
     cooky.reduce_stock(1, 1)
     print(cooky.get_current_stock().head())
-    meals = cooky.meal_reco()
+    meals = cooky.meal_reco_by_pantry()
 
     cooky.cook_meal(meals[0])
     pass
