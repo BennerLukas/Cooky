@@ -107,10 +107,11 @@ class Cooky:
 
     def meal_reco_without_pantry(self):
         pass        # TODO
-        recos = self.db.get_data_from_table("recos")
+        s_sql = f"SELECT * FROM recos WHERE n_user_id = {self.n_user_id}"
+        recos = self.db.get_data_from_table("recos", b_full_table=False, s_query=s_sql)
+        return recos.sort_values(by="rating", ascending=False)
 
     def meal_reco_by_pantry(self):  # TODO
-        # Current User Input
 
         # Check available recipes
         candidates = self._possible_recipes()
@@ -167,6 +168,7 @@ if __name__ == "__main__":
     cooky = Cooky()
     cooky.usage()
     cooky.add_user("Hans")
+    cooky.n_user_id = 8961
     for i in range(0, 150):
         try:
             cooky.add_item2stock(i, 10)
@@ -176,6 +178,6 @@ if __name__ == "__main__":
     cooky.reduce_stock(1, 1)
     print(cooky.get_current_stock().head())
     meals = cooky.meal_reco_by_pantry()
-
+    meals2 = cooky.meal_reco_without_pantry()
     cooky.cook_meal(meals[0])
     pass

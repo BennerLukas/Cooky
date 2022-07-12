@@ -18,14 +18,15 @@ class Recommender:
         self.reco_als()
 
     def ranking(self, candidate_recipes, n_user_id):
-
         s_sql = f"SELECT * FROM recos WHERE n_user_id = {n_user_id}"
         reco_recipes = self.db.get_data_from_table("recos", b_full_table=False, s_query=s_sql)
+        if reco_recipes.count()[0] == 0:
+            return False
+        reco_recipes_list = reco_recipes.n_recipe_id.to_list()
 
-        # TODO
-        return
-
-
+        matches = list(set(candidate_recipes) & set(reco_recipes_list))
+        result = reco_recipes.loc[reco_recipes["n_recipe_id"].isin(matches)].sort_values(by="rating", ascending=False)
+        return result
 
     def create_spark_session(self):
         # self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()
@@ -85,19 +86,10 @@ class Recommender:
         # user_recos = model.recommendForUserSubset(user_dataset, n_recos)
         user_recos = self.model.recommendForAllUsers(n_recos)
 
-        user_recos_exploded = user_recos.withColumn("reco", F.explode("recommendations")).select("n_user_id", F.col("reco.n_recipe_id"), F.col("reco.rating"))
+        user_recos_exploded = user_recos.withColumn("reco", F.explode("recommendations")).select("n_user_id", F.col(
+            "reco.n_recipe_id"), F.col("reco.rating"))
         user_recos_exploded = user_recos_exploded.where(F.col("rating") > 0)
 
         df_user_recos_exploded = user_recos_exploded.toPandas()
-        self.db.write_df2table(df_user_recos_exploded, "recos", mode="overwrite")
+        self.db.write_df2table(df_user_recos_exploded, "recos", mode="replace")
         return df_user_recos_exploded
-
-
-if __name__ == "__main__":
-    from database import DataBase
-
-    obj = Recommender(DataBase(False))
-    # obj.generate_synthetic_user_data()
-    model = obj.train_als()
-    reco = obj.reco_als()
-    pass
