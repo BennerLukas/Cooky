@@ -13,7 +13,12 @@ class Cooky:
     def __init__(self, init_db=True):
         self.db = DataBase(init_db)
         self.n_user_id = None
-        self.reco = Recommender(self.db)
+        self.reco = Recommender(self.db, init_db)
+
+    def add_rating(self, n_rating_value, n_recipe_id):
+        s_sql = f" INSERT INTO ratings(n_user_id, n_rating, n_recipe_id) VALUES ('{self.n_user_id}', '{n_recipe_id}', '{n_rating_value}');"
+        self.db.write_sql2table(s_sql)
+        return True
 
     def add_user(self, s_username):
 
@@ -105,13 +110,11 @@ class Cooky:
         return candidates
 
     def meal_reco_without_pantry(self):
-        pass        # TODO
         s_sql = f"SELECT * FROM recos WHERE n_user_id = {self.n_user_id}"
         recos = self.db.get_data_from_table("recos", b_full_table=False, s_query=s_sql)
         return recos.sort_values(by="rating", ascending=False)
 
-    def meal_reco_by_pantry(self):  # TODO
-
+    def meal_reco_by_pantry(self):
         # Check available recipes
         candidates = self._possible_recipes()
 
@@ -167,18 +170,19 @@ cooky = Cooky()
 
 if __name__ == "__main__":
     cooky = Cooky()
-    cooky.usage()
-    cooky.add_user("Hans")
+    # cooky.usage()
+    # cooky.add_user("Hans")
     cooky.n_user_id = 8961
-    for i in range(0, 150):
-        try:
-            cooky.add_item2stock(i, 10)
-        except:
-            logging.debug("Exception triggered")
-            continue
-    cooky.reduce_stock(1, 1)
-    print(cooky.get_current_stock().head())
-    meals = cooky.meal_reco_by_pantry()
-    meals2 = cooky.meal_reco_without_pantry()
-    cooky.cook_meal(meals.n_recipe_id.to_list()[0])
+    # for i in range(0, 150):
+    #     try:
+    #         cooky.add_item2stock(i, 10)
+    #     except:
+    #         logging.debug("Exception triggered")
+    #         continue
+    # cooky.reduce_stock(1, 1)
+    # print(cooky.get_current_stock().head())
+    # meals = cooky.meal_reco_by_pantry()
+    # meals2 = cooky.meal_reco_without_pantry()
+    # cooky.cook_meal(meals.n_recipe_id.to_list()[0])
+    cooky.add_rating(10, 2)
     pass

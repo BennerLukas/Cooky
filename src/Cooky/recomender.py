@@ -9,13 +9,14 @@ import os
 
 class Recommender:
 
-    def __init__(self, db):
+    def __init__(self, db, init=True):
         self.db = db
         self.spark = None
         self.model = None
 
-        self.train_als()
-        self.reco_als()
+        if init is True:
+            self.train_als()
+            self.reco_als()
 
     def ranking(self, candidate_recipes, n_user_id):
         s_sql = f"SELECT * FROM recos WHERE n_user_id = {n_user_id}"
@@ -29,7 +30,7 @@ class Recommender:
         return result
 
     def create_spark_session(self):
-        # self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()
+        # self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()      # TODO make flexible
         os.environ["HADOOP_HOME"] = r"C:\Users\lukas\spark-3.3.0-bin-hadoop3"
         os.environ["JAVA_HOME"] = r"C:\Program Files\Java\jre1.8.0_333"
         os.environ["PYSPARK_PYTHON"] = "python"
@@ -45,6 +46,7 @@ class Recommender:
         return self.spark
 
     def train_als(self):
+        # Collaborative Filtering mit Matrixfaktorisierung unter Verwendung von Alternating Least Squares
         self.create_spark_session()
 
         df = self.db.get_data_from_table("ratings", b_full_table=True)
@@ -92,4 +94,5 @@ class Recommender:
 
         df_user_recos_exploded = user_recos_exploded.toPandas()
         self.db.write_df2table(df_user_recos_exploded, "recos", mode="replace")
+        self.db.write_sql2table(f"ALTER TABLE ratings ADD PRIMARY KEY (n_user_id, n_recipe_id);")
         return df_user_recos_exploded

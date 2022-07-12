@@ -25,7 +25,8 @@ class DataBase:
     # dataset_file_path = "C:/Projects/Cooky/data/full_dataset.csv"
     # dataset_file_path = "C:/Projects/Cooky/data/big_part_dataset.csv"
     # dataset_file_path = "C:/Projects/Cooky/data/part_dataset.csv"
-    dataset_file_path = "./data/part_dataset.csv"
+    dataset_file_path = "./data/part_dataset.csv"       # TODO test with big dataset
+    dataset_file_path = "./data/big_part_dataset.csv"
 
     def __init__(self, db_init=True):
         self.connect()
@@ -219,7 +220,7 @@ class DataBase:
                 amounts_needed.append(result)
                 s_unit_types.append("jar")
 
-            elif "can" in raw_ingredient:
+            elif "can" in raw_ingredient and "canned" not in raw_ingredient:
                 result = re.findall(".+?(?=can)", raw_ingredient)[0].replace(" ", "")
                 amounts_needed.append(result)
                 s_unit_types.append("can")
@@ -240,7 +241,7 @@ class DataBase:
             except ValueError:
                 try:
                     f_amounts_needed.append(eval(result))
-                except SyntaxError:
+                except (SyntaxError, NameError):
                     try:
                         search_pattern = "^[^\d]*(\d+)"
                         result = re.findall(search_pattern, result)
@@ -248,7 +249,7 @@ class DataBase:
                         f_amounts_needed.append(f_result)
 
                     except:
-                        f_amounts_needed.append(None)
+                        f_amounts_needed.append(1)
 
         df_ingredients["s_raw_measurements"] = raw_measurements
         df_ingredients["s_amount_needed"] = amounts_needed
