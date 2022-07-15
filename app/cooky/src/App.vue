@@ -1,86 +1,44 @@
 <template>
-  <v-app id="inspire">
-    <v-navigation-drawer
-        v-model='drawer'
-        app
-      >
-      <v-list-item>
-        <v-list-item-content>
-          <v-list-item-title class="text-h6">
-            Navigate
-          </v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
+  <v-app id="cooky">
 
-      <v-divider></v-divider>
-
-      <v-list
-        dense
-        nav
-      >
-        <v-list-item
-          v-for="item in items"
-          :key="item.title"
-          :to="item.to"
-          link
-        >
-          <v-list-item-icon>
-            <v-icon>{{ item.icon }}</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
-
-    <v-app-bar
-      app
-      color="primary"
-      dark
-      shrink-on-scroll
-      prominent
-      src="navbar-background.jpg"
-      fade-img-on-scroll
-      scroll-target="#scrolling-techniques-5"
-      scroll-threshold="500"
-    >
-      <template v-slot:img="{ props }">
-        <v-img
-          v-bind="props"
-          gradient="to top right, rgba(55,236,186,.7), rgba(25,32,72,.7)"
-        ></v-img>
-      </template>
-
-      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-
-      <v-app-bar-title>Cooky</v-app-bar-title>
-
-      <v-spacer></v-spacer>
-
-
-      <v-btn icon>
-        <v-icon>mdi-dots-vertical</v-icon>
-      </v-btn>
-    </v-app-bar>
-
-  
 
     <v-main>
       <router-view></router-view>
     </v-main>
+
+
+    <v-bottom-navigation
+      app
+      :value="value"
+      color="primary"
+    >
+    
+      <v-btn
+        v-for="item in items"
+        :to="item.to">
+
+        <span>{{ item.title }}</span>
+
+        <v-icon>{{ item.icon }}</v-icon>
+        
+      </v-btn>
+      
+    </v-bottom-navigation>
+
   </v-app>
 </template>
 
 <script>
   
   export default {
-    data: () => ({ drawer: null,
+    data() {
+      return {
+    value: "1",
     items: [
-          { title: 'Explore', icon: 'mdi-view-dashboard', to:'/' },
-          { title: 'Manage', icon: 'mdi-fridge', to:'/manage' },
-          { title: 'Settings', icon: 'mdi-cog', to:'/settings' },
-        ] }),// navigation items
+          { title: 'Explore', icon: 'mdi-chef-hat', to:'/' },
+          { title: 'Search', icon: 'mdi-magnify', to:'/search' },
+          { title: 'Pantry', icon: 'mdi-fridge', to:'/pantry' },
+          { title: 'Settings', icon: 'mdi-account', to:'/settings' },
+        ] }},// navigation items
   }
 </script>
