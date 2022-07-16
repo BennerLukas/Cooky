@@ -170,8 +170,8 @@ cooky = Cooky()
 
 if __name__ == "__main__":
     cooky = Cooky()
-    # cooky.usage()
-    # cooky.add_user("Hans")
+    cooky.usage()
+    cooky.add_user("Hans")
     cooky.n_user_id = 8961
     # for i in range(0, 150):
     #     try:
