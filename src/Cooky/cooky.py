@@ -1,10 +1,13 @@
 from dataclasses import dataclass
 import logging
+import pandas as pd
+
+from gevent import idle
 
 logging.basicConfig(level=logging.INFO)
 
 from database import DataBase
-from recomender import Recommender
+from recommender import Recommender
 
 
 @dataclass
@@ -19,6 +22,10 @@ class Cooky:
         s_sql = f" INSERT INTO ratings(n_user_id, n_rating, n_recipe_id) VALUES ('{self.n_user_id}', '{n_recipe_id}', '{n_rating_value}');"
         self.db.write_sql2table(s_sql)
         return True
+
+    # TODO: fetch rating from db to pass to client
+    def get_rating(self):
+        pass
 
     def add_user(self, s_username):
 
@@ -56,6 +63,14 @@ class Cooky:
         s_sql = f"SELECT DISTINCT n_recipe_id FROM recipes;"
         df = self.db.get_data_from_table("recipes", b_full_table=False, s_query=s_sql)
         return df
+
+    def get_recipes(self, id_list):
+        if len(id_list) != 0:
+            s_sql = f"SELECT * FROM recipes where n_recipe_id in {tuple(id_list)};"
+            df = self.db.get_data_from_table("recipes", b_full_table=False, s_query=s_sql)
+            return df
+        else:
+            return pd.DataFrame()
 
     def reduce_stock(self, n_item_id, n_amount_to_reduce):
         s_sql = f"SELECT * FROM pantry WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
@@ -173,16 +188,27 @@ if __name__ == "__main__":
     cooky.usage()
     cooky.add_user("Hans")
     cooky.n_user_id = 8961
-    # for i in range(0, 150):
-    #     try:
-    #         cooky.add_item2stock(i, 10)
-    #     except:
-    #         logging.debug("Exception triggered")
-    #         continue
-    # cooky.reduce_stock(1, 1)
-    # print(cooky.get_current_stock().head())
-    # meals = cooky.meal_reco_by_pantry()
-    # meals2 = cooky.meal_reco_without_pantry()
-    # cooky.cook_meal(meals.n_recipe_id.to_list()[0])
+    for i in range(0, 150):
+        try:
+            cooky.add_item2stock(i, 10)
+        except:
+            logging.debug("Exception triggered")
+            continue
+    cooky.reduce_stock(1, 1)
+    print(cooky.get_current_stock().head())
+
+    # meals1 = cooky.meal_reco_by_pantry().to_dict()
+    # print("meals1: ", meals1)
+    # recipe_ids1 = meals1["n_recipe_id"].values()
+    # recipes1 = cooky.get_recipes(recipe_ids1).to_json()
+    # print("Reco by pantry:", recipes1)
+
+    # meals2 = cooky.meal_reco_without_pantry().to_dict()
+    # print("meals2: ", meals2)
+    # recipe_ids2 = meals2["n_recipe_id"].values()
+    # recipes2 = cooky.get_recipes(recipe_ids2).to_json()
+    # print("Reco without pantry:", recipes2)
+
+    #ERROR: cooky.cook_meal(meals.n_recipe_id.to_list()[0])
     cooky.add_rating(10, 2)
     pass
