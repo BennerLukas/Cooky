@@ -10,7 +10,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 from food_extractor.food_model import FoodModel
-from recomender import Recommender
+from recommender import Recommender
 
 
 @dataclass
