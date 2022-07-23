@@ -6,7 +6,7 @@ from cooky import Cooky
 
 app = Flask(__name__)
 
-cooky = Cooky()
+cooky = Cooky(init_db=False)
 
 # Explore Page Functions
 """
@@ -101,20 +101,24 @@ Functions:
 """
 
 
-@app.route("/login", methods=["POST","DELETE"]) # Sensitive data, hence POST
+@app.route("/login", methods=["POST"]) # Sensitive data, hence POST
 def login():
     if request.method == 'POST':
-        """create session id"""
-        data = request.json # username (id) and password (s_username)
-        cooky.n_user_id = data.username
-        print(data["username"])
+        # Read Request
+        # {
+        #     "username": 1,
+        #     "password": 1
+        # }
+        data = request.json
+        user_id = data["username"]
+        password = data["password"]
 
-    # Only needed if Sessions are implemented:
-    # if request.method == 'DELETE':
-    #     """delete user with ID <user_id>"""
-    #     pass
-    
-    return "success", 200
+        # Check validity
+        if cooky.check_user(user_id):
+          cooky.n_user_id = user_id
+          return jsonify({"session":user_id}), 200
+        else:
+          return "not found", 404
 
 
 # Pantry Page Functions

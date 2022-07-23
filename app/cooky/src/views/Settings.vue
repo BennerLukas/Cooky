@@ -1,6 +1,8 @@
 
 <template>
-<v-form v-model="valid">
+<div>
+<!-- Login View -->
+<v-form v-model="valid" v-if="!isHidden">
     <h1>Login</h1>
     <v-container>
       <v-row>
@@ -33,18 +35,26 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-btn @click="createPost">Login</v-btn>
+    <v-btn @click="loginPost">Login</v-btn>
   </v-form>
 
+<!-- Account View -->
+<v-skeleton-loader
+  type="card-avatar, article, actions"
+  v-if="isHidden">
+</v-skeleton-loader>
 
+</div>
 </template>
 
 <script>
 import axios from 'axios'
+import VueCookies from 'vue-cookies'
 
   export default {
     data: () => ({
         name:"login",
+        isHidden:false,
         formData : {
             username: '',
             password: '',
@@ -53,11 +63,29 @@ import axios from 'axios'
       show: false,
     }),
     methods: {
-        createPost() {
+        onload() {
+          //check if session exists, if yes, show different view
+          var session = VueCookies.isKey("session")
+          if (session) {
+            //change render
+            this.isHidden = true
+          }
+        },
+        loginPost() {
+          if (this.formData.username.length > 0) {
             axios.post('http://localhost:5000/login', this.formData)
-            .then(response => console.log(response))
+            .then(function (response) {
+              if (response.status == 200) {
+                VueCookies.set('session' , response.data.session, "10h")
+                window.location.href = "/"; // on success, redirects to explore view
+              }
+            })
             .catch(error => console.log(error))
         }
-    }
+      }
+    },
+    beforeMount(){
+    this.onload()
   }
+}
 </script>

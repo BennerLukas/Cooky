@@ -18,14 +18,24 @@ class Cooky:
         self.n_user_id = None
         self.reco = Recommender(self.db, init_db)
 
+    # TODO: fetch rating from db to pass to client
+    def get_rating(self):
+        pass
+
     def add_rating(self, n_rating_value, n_recipe_id):
         s_sql = f" INSERT INTO ratings(n_user_id, n_rating, n_recipe_id) VALUES ('{self.n_user_id}', '{n_recipe_id}', '{n_rating_value}');"
         self.db.write_sql2table(s_sql)
         return True
 
-    # TODO: fetch rating from db to pass to client
-    def get_rating(self):
-        pass
+    def check_user(self, user_id):
+        # Checks if a given user-id exists in the DB
+        s_sql = f" SELECT * FROM users WHERE n_user_id = {user_id};"
+        df = self.db.get_data_from_table("users", b_full_table=False, s_query=s_sql)
+
+        if df.empty:
+            return False
+        else:
+            return True
 
     def add_user(self, s_username):
 
