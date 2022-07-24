@@ -85,14 +85,16 @@ class Cooky:
     def reduce_stock(self, n_item_id, n_amount_to_reduce):
         s_sql = f"SELECT * FROM pantry WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
         df = self.db.get_data_from_table("pantry", b_full_table=False, s_query=s_sql)
+        print("Amount: ",df.f_amount_in_stock)
         if len(df.f_amount_in_stock) != 1:
             raise
-        new_amount = df.f_amount_in_stock.to_list()[0] - n_amount_to_reduce
-        if new_amount < 0:
-            new_amount = 0
-
-        s_sql = f"UPDATE pantry SET f_amount_in_stock = {new_amount}  WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
-        self.db.write_sql2table(s_sql)
+        new_amount = df.f_amount_in_stock.to_list()[0] - float(n_amount_to_reduce)
+        if new_amount <= 0:
+            s_sql = f"DELETE FROM pantry WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
+            self.db.write_sql2table(s_sql)
+        else:
+            s_sql = f"UPDATE pantry SET f_amount_in_stock = {new_amount}  WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
+            self.db.write_sql2table(s_sql)
 
     def cook_meal(self, n_recipe_id):  # remove stock
         s_sql = f"SELECT * FROM ingredients WHERE n_recipe_id = {n_recipe_id};"

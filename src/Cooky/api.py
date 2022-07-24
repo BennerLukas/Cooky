@@ -1,6 +1,7 @@
 from crypt import methods
 import string
 from flask import Flask, jsonify, request
+from sqlalchemy import all_
 from torch import randint
 from cooky import Cooky
 
@@ -132,6 +133,60 @@ Functions:
 - get_current_stock()
 - reduce_stock(item_id,amount_to_reduce)
 """
+
+@app.route("/pantry", methods=["GET"])
+def loadPantry():
+  # [
+  #         {
+  #           id: 1,
+  #           title: "item1",
+  #           qty: 111
+  #         },
+  #         {
+  #           id: 3,
+  #           title: "item3",
+  #           qty: 3
+  #         }
+  #       ]
+  session = request.args.get('session', None)
+
+  # sync session
+  cooky.n_user_id = session  
+
+  # fetch items
+  pantry_items = cooky.get_current_stock().to_dict()
+  all_items = cooky.get_all_items().to_dict()
+  
+  # return items
+  return {'all':all_items, 'pantry':pantry_items}, 200
+
+@app.route("/pantry/delete", methods=["DELETE"])
+def deleteItem():
+  session = request.args.get('session', None)
+  item_id = request.args.get('item_id', None)
+  item_qty = request.args.get('item_qty', None)
+
+  # sync session
+  cooky.n_user_id = session
+
+  # Delete
+  cooky.reduce_stock(item_id, item_qty)
+
+  return 'success', 202
+
+@app.route("/pantry/add", methods=["GET"])
+def addItem():
+  session = request.args.get('session', None)
+  item_id = request.args.get('item_id', None)
+  item_qty = request.args.get('item_qty', None)
+
+  # sync session
+  cooky.n_user_id = session
+
+  # add item
+  cooky.add_item2stock(item_id, item_qty)
+
+  return 'success', 202
 
 if __name__ == "__main__":
     app.run(debug=True)
