@@ -18,6 +18,9 @@ class Cooky:
         self.n_user_id = None
         self.reco = Recommender(self.db, init_db)
 
+        if init_db:
+            self.db.write_sql2table(f"ALTER TABLE ratings ADD PRIMARY KEY (n_user_id, n_recipe_id);")
+
     # TODO: fetch rating from db to pass to client
     def get_rating(self):
         pass
@@ -26,6 +29,12 @@ class Cooky:
         s_sql = f" INSERT INTO ratings(n_user_id, n_rating, n_recipe_id) VALUES ('{self.n_user_id}', '{n_recipe_id}', '{n_rating_value}');"
         self.db.write_sql2table(s_sql)
         return True
+
+    def select_ingredients(self, n_recipe_id):
+        # Checks if a given user-id exists in the DB
+        s_sql = f" SELECT * FROM ingredients WHERE n_recipe_id = {n_recipe_id};"
+        df = self.db.get_data_from_table("ingredients", b_full_table=False, s_query=s_sql)
+        return df
 
     def check_user(self, user_id):
         # Checks if a given user-id exists in the DB
@@ -198,7 +207,6 @@ cooky = Cooky()
 if __name__ == "__main__":
     cooky = Cooky()
     cooky.usage()
-    cooky.add_user("Hans")
     cooky.n_user_id = 8961
     for i in range(0, 150):
         try:

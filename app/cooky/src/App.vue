@@ -36,7 +36,6 @@
     value: "1",
     items: [
           { title: 'Explore', icon: 'mdi-chef-hat', to:'/' },
-          { title: 'Search', icon: 'mdi-magnify', to:'/search' },
           { title: 'Pantry', icon: 'mdi-fridge', to:'/pantry' },
           { title: 'Settings', icon: 'mdi-account', to:'/settings' },
         ] }},// navigation items

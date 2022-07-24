@@ -4,6 +4,24 @@ from flask import Flask, jsonify, request
 from sqlalchemy import all_
 from torch import randint
 from cooky import Cooky
+from recommender import Recommender
+
+print(
+'''
+   _____            _          
+  / ____|          | |         
+ | |     ___   ___ | | ___   _ 
+ | |    / _ \ / _ \| |/ / | | |
+ | |___| (_) | (_) |   <| |_| |
+  \_____\___/ \___/|_|\_\\__, |
+                          __/ |
+                         |___/ 
+
+(c) 2022 - Seems-Inc.de
+'''
+
+)
+
 
 app = Flask(__name__)
 
@@ -17,81 +35,42 @@ Functions:
 - get_all_recipe_ids()
 - meal_reco_without_pantry: db excerpt
 - meal_reco_by_pantr: ranked recipes
+
 """
 
-@app.route("/explore/", methods=["GET"])
+
+@app.route("/reco", methods=["GET"])
+def loadReco():
+  cooky.reco = Recommender(cooky.db, True)
+  return "success", 200
+
+@app.route("/explore", methods=["GET"])
 def explore():
+  session = request.args.get('session', None)
+  pantry = int(request.args.get('pantry', 0))
+  # sync session
+  cooky.n_user_id = session
+  meals = cooky.meal_reco_without_pantry().to_dict()
 
-    if request.args.get('reco') == "pantry":
-        meals = cooky.meal_reco_by_pantry().to_dict()
-        recipe_ids = meals["n_recipe_id"].values()
-        recipes = cooky.get_recipes(recipe_ids).to_json()
-        
-
-        cards = []
-        for i in recipes["n_recipe_id"]:
-          cards.append(
-            {
-              "id":i,
-              "title":recipes["n_recipe_id"][i],
-              "ingredients":recipes["array_ingredients"][i],
-              "directions":recipes["s_directions"][i],
-              "entities":recipes["array_NER"][i],
-              "flex":7,
-              "src": "https://cdn.vuetifyjs.com/images/cards/house.jpg"
-            }
-          )
+  # With Pantry Recommendation
+  pantry_rec = cooky.meal_reco_by_pantry()
+  print(pantry_rec.n_recipe_id.to_list())
+  pantry_recipes = cooky.get_recipes(pantry_rec.n_recipe_id.to_list())
 
 
-        return cards, 200
+  # Without Pantry Recommendation
+  all_rec = cooky.meal_reco_without_pantry()
+  print(all_rec.n_recipe_id.to_list())
+  all_recipes = cooky.get_recipes(all_rec.n_recipe_id.to_list())
+    
+  return jsonify({"all":all_recipes.to_dict(),"pantry":pantry_recipes.to_dict()}), 200
 
-
-    elif request.args.get('reco') == "all":
-        meals = cooky.meal_reco_without_pantry().to_dict()
-        recipe_ids = meals["n_recipe_id"].values()
-        recipes = cooky.get_recipes(recipe_ids).to_json()
-
-
-        cards = []
-        for i in recipes["n_recipe_id"]:
-          cards.append(
-            {
-              "id":i,
-              "title":recipes["n_recipe_id"][i],
-              "ingredients":recipes["array_ingredients"][i],
-              "directions":recipes["s_directions"][i],
-              "entities":recipes["array_NER"][i],
-              "flex":7,
-              "src": "https://cdn.vuetifyjs.com/images/cards/house.jpg"
-            }
-          )
-
-
-        return cards, 200
-
-    else:
-        return "error", 500
-
-# Detail Page Functions
-"""
-- On Click, load Details
-- Bing API Call for Image
-
-Functions:
-- add_rating(user_id, recipe_id, rating_value): True
-- cook_meal(recipe_id): True #reduces stock according to meal
-
-"""
-
-# Search Page
-"""
-- Query DB for Dish Name and return details as well
-
-Functions:
-
-- get_all_recipe_ids(): IDs of recipes
-- _possible_recipes(): list of recipes #probably support function, do not use directly
-"""
+@app.route("/explore/ingredients", methods=["GET"])
+def fetchIngredients():
+  session = request.args.get('session', None)
+  recipe_id = request.args.get('recipe_id', None)
+  ingredients = cooky.select_ingredients(recipe_id)
+  return ingredients.to_json(), 200
 
 # Settings Page Functions
 """

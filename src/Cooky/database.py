@@ -24,6 +24,7 @@ class DataBase:
 
     # dataset_file_path = "./data/part_dataset.csv"
     dataset_file_path = "./src/data/big_part_dataset.csv"
+    # dataset_file_path = "./src/data/part_dataset.csv"
 
     def __init__(self, db_init=True):
         self.connect()
@@ -136,6 +137,8 @@ class DataBase:
         df.columns = ["n_recipe_id", "s_recipe_title", "array_ingredients", "s_directions", "s_link",
                       "s_source", "array_NER"]
         df_recipes = df.set_index("n_recipe_id")
+        df_recipes = df_recipes.reset_index(drop=True)
+        df_recipes.index.names = ["n_recipe_id"]
         self.write_df2table(df_recipes, table_name="recipes")
 
         logging.info(df_recipes.head())
