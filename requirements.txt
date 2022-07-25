@@ -4,5 +4,6 @@ transformers
 matplotlib
 pyspark
 sqlalchemy
-psycopg2 # ( for anaconda: conda install -c conda-forge psycopg2-binary )
+#psycopg2 # ( for anaconda: conda install -c conda-forge psycopg2-binary )
+psycopg2-binary
 pandas
