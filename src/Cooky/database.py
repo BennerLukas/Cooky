@@ -22,8 +22,8 @@ class DataBase:
     alchemy_connection = None
     psycopg2_connection = None
 
-    dataset_file_path = "./data/part_dataset.csv"
-    # dataset_file_path = "./data/big_part_dataset.csv"
+    # dataset_file_path = "./data/part_dataset.csv"
+    dataset_file_path = "./data/big_part_dataset.csv"
 
     def __init__(self, db_init=True):
         self.connect()
@@ -245,6 +245,7 @@ class DataBase:
         for recipe_ingredient, n_recipe_id in zip(ingredients_list.array_NER, ingredients_list.n_recipe_id):
             ingredients = recipe_ingredient.replace("[", "").replace("]", "").split(", ")
             for ingredient in ingredients:
+                ingredient = ingredient.lower().replace('"', "")
                 items.add(ingredient)
                 ingredient_name.append(ingredient)
                 ingredient_recpie_id.append(n_recipe_id)

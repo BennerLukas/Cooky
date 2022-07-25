@@ -42,7 +42,7 @@ class Cooky:
 
     def add_item2stock(self, n_item_id, n_amount_in_stock):
 
-        s_sql = f"SELECT s_unit_type FROM ingredients WHERE n_ingredient_id = {n_item_id}"
+        s_sql = f"SELECT s_unit_type FROM ingredients WHERE n_item_id = {n_item_id}"
         df = self.db.get_data_from_table("ingredients", b_full_table=False, s_query=s_sql)
 
         s_unit_type = df.s_unit_type[0]
@@ -182,7 +182,7 @@ if __name__ == "__main__":
     cooky = Cooky()
     # cooky.usage()
     # cooky.add_user("Hans")
-    cooky.n_user_id = 8961
+    cooky.n_user_id = 1848
     for i in range(0, 150):
         try:
             cooky.add_item2stock(i, 10)
