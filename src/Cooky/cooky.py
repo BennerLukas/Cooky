@@ -1,10 +1,13 @@
 from dataclasses import dataclass
 import logging
+import pandas as pd
+
+from gevent import idle
 
 logging.basicConfig(level=logging.INFO)
 
 from database import DataBase
-from recomender import Recommender
+from recommender import Recommender
 
 
 @dataclass
@@ -15,20 +18,42 @@ class Cooky:
         self.n_user_id = None
         self.reco = Recommender(self.db, init_db)
 
+        if init_db:
+            self.db.write_sql2table(f"ALTER TABLE ratings ADD PRIMARY KEY (n_user_id, n_recipe_id);")
+
+
     def add_rating(self, n_rating_value, n_recipe_id):
         s_sql = f" INSERT INTO ratings(n_user_id, n_rating, n_recipe_id) VALUES ('{self.n_user_id}', '{n_recipe_id}', '{n_rating_value}');"
         self.db.write_sql2table(s_sql)
         return True
-
+    #new
     def get_rating(self, n_recipe_id):
         s_sql = f"SELECT * FROM ratings WHERE n_user_id = {self.n_user_id} AND n_recipe_id = {n_recipe_id};"
         df = self.db.get_data_from_table("ratings", b_full_table=False, s_query=s_sql)
         return df
-
+    #new
     def get_avg_rating(self, n_recipe_id):
         s_sql = f"SELECT AVG(rating) FROM recos WHERE n_recipe_id = {n_recipe_id};"
         df = self.db.get_data_from_table("ratings", b_full_table=False, s_query=s_sql)
         return df
+    
+    #new
+    def select_ingredients(self, n_recipe_id):
+        # Checks if a given user-id exists in the DB
+        s_sql = f" SELECT * FROM ingredients WHERE n_recipe_id = {n_recipe_id};"
+        df = self.db.get_data_from_table("ingredients", b_full_table=False, s_query=s_sql)
+        return df
+
+    #new
+    def check_user(self, user_id):
+        # Checks if a given user-id exists in the DB
+        s_sql = f" SELECT * FROM users WHERE n_user_id = {user_id};"
+        df = self.db.get_data_from_table("users", b_full_table=False, s_query=s_sql)
+
+        if df.empty:
+            return False
+        else:
+            return True
 
     def add_user(self, s_username):
 
@@ -67,17 +92,27 @@ class Cooky:
         df = self.db.get_data_from_table("recipes", b_full_table=False, s_query=s_sql)
         return df
 
+    def get_recipes(self, id_list):
+        if len(id_list) != 0:
+            s_sql = f"SELECT * FROM recipes where n_recipe_id in {tuple(id_list)};"
+            df = self.db.get_data_from_table("recipes", b_full_table=False, s_query=s_sql)
+            return df
+        else:
+            return pd.DataFrame()
+
     def reduce_stock(self, n_item_id, n_amount_to_reduce):
         s_sql = f"SELECT * FROM pantry WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
         df = self.db.get_data_from_table("pantry", b_full_table=False, s_query=s_sql)
+        print("Amount: ",df.f_amount_in_stock)
         if len(df.f_amount_in_stock) != 1:
             raise
-        new_amount = df.f_amount_in_stock.to_list()[0] - n_amount_to_reduce
-        if new_amount < 0:
-            new_amount = 0
-
-        s_sql = f"UPDATE pantry SET f_amount_in_stock = {new_amount}  WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
-        self.db.write_sql2table(s_sql)
+        new_amount = df.f_amount_in_stock.to_list()[0] - float(n_amount_to_reduce)
+        if new_amount <= 0:
+            s_sql = f"DELETE FROM pantry WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
+            self.db.write_sql2table(s_sql)
+        else:
+            s_sql = f"UPDATE pantry SET f_amount_in_stock = {new_amount}  WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
+            self.db.write_sql2table(s_sql)
 
     def cook_meal(self, n_recipe_id):  # remove stock
         s_sql = f"SELECT * FROM ingredients WHERE n_recipe_id = {n_recipe_id};"
@@ -180,8 +215,7 @@ cooky = Cooky()
 
 if __name__ == "__main__":
     cooky = Cooky()
-    # cooky.usage()
-    # cooky.add_user("Hans")
+    cooky.usage()
     cooky.n_user_id = 8961
     for i in range(0, 150):
         try:
@@ -191,8 +225,5 @@ if __name__ == "__main__":
             continue
     cooky.reduce_stock(1, 1)
     print(cooky.get_current_stock().head())
-    meals = cooky.meal_reco_by_pantry()
-    meals2 = cooky.meal_reco_without_pantry()
-    cooky.cook_meal(meals.n_recipe_id.to_list()[0])
     cooky.add_rating(10, 2)
     pass

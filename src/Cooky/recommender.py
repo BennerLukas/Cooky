@@ -29,7 +29,7 @@ class Recommender:
         result = reco_recipes.loc[reco_recipes["n_recipe_id"].isin(matches)].sort_values(by="rating", ascending=False)
         return result
 
-    def create_spark_session(self, custom_user="lukas"):
+    def create_spark_session(self, custom_user=None):
         # self.spark = pyspark.sql.SparkSession.builder.appName("Cooky").getOrCreate()      # TODO make flexible
         if custom_user == "lukas":
             os.environ["HADOOP_HOME"] = r"C:\Users\lukas\spark-3.3.0-bin-hadoop3"
@@ -95,5 +95,5 @@ class Recommender:
 
         df_user_recos_exploded = user_recos_exploded.toPandas()
         self.db.write_df2table(df_user_recos_exploded, "recos", mode="replace")
-        self.db.write_sql2table(f"ALTER TABLE ratings ADD PRIMARY KEY (n_user_id, n_recipe_id);")
+        # self.db.write_sql2table(f"ALTER TABLE ratings ADD PRIMARY KEY (n_user_id, n_recipe_id);")
         return df_user_recos_exploded
