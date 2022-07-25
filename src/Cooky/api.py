@@ -5,6 +5,8 @@ from sqlalchemy import all_
 from torch import randint
 from cooky import Cooky
 from recommender import Recommender
+from flask_cors import CORS, cross_origin
+
 
 print(
 '''
@@ -24,6 +26,8 @@ print(
 
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 cooky = Cooky(init_db=False)
 
