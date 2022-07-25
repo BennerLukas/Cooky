@@ -23,12 +23,7 @@ class DataBase:
     psycopg2_connection = None
 
     # dataset_file_path = "./data/part_dataset.csv"
-    dataset_file_path = "./src/data/big_part_dataset.csv"
-    # dataset_file_path = "./src/data/part_dataset.csv"
-
-    # dataset_file_path = "./data/part_dataset.csv"
-    # dataset_file_path = "./data/big_part_dataset.csv"
-
+    dataset_file_path = "./data/big_part_dataset.csv"
 
     def __init__(self, db_init=True):
         self.connect()
@@ -65,7 +60,7 @@ class DataBase:
         return True
 
     def del_schema(self):
-        s_sql_statement = open("./src/db/del.sql", "r").read()
+        s_sql_statement = open("./db/del.sql", "r").read()
 
         # cleaning file from comments and escape functions
         s_sql_statement = re.sub(r"--.*|\n|\t", " ", s_sql_statement)
@@ -73,7 +68,7 @@ class DataBase:
         logging.debug(res)
 
     def init_schema(self):
-        s_sql_statement = open("./src/db/init.sql", "r").read()
+        s_sql_statement = open("./db/init.sql", "r").read()
 
         # cleaning file from comments and escape functions
         s_sql_statement = re.sub(r"--.*|\n|\t", " ", s_sql_statement)
@@ -132,7 +127,7 @@ class DataBase:
 
     def read_csv(self):
         logging.info("Read CSV File")
-        df = pd.read_csv(self.dataset_file_path, sep=",")
+        df = pd.read_csv(self.dataset_file_path, sep=",", )
         logging.info("Read Finished")
         return df
 
@@ -250,6 +245,7 @@ class DataBase:
         for recipe_ingredient, n_recipe_id in zip(ingredients_list.array_NER, ingredients_list.n_recipe_id):
             ingredients = recipe_ingredient.replace("[", "").replace("]", "").split(", ")
             for ingredient in ingredients:
+                ingredient = ingredient.lower().replace('"', "")
                 items.add(ingredient)
                 ingredient_name.append(ingredient)
                 ingredient_recpie_id.append(n_recipe_id)
@@ -277,7 +273,7 @@ class DataBase:
         df_recipes = self.get_data_from_table("recipes", b_full_table=True)
         max_recipe_id = df_recipes.n_recipe_id.max()
 
-        df = pd.read_csv("./src/data/BX-Book-Ratings.csv", sep=";", encoding='CP1252', escapechar='\\')
+        df = pd.read_csv("./data/BX-Book-Ratings.csv", sep=";", encoding='CP1252', escapechar='\\')
         df = df[df["Book-Rating"] != 0]
 
         df_lookup = pd.DataFrame(df.ISBN.unique(), columns=["ISBN"])
