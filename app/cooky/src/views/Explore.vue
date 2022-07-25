@@ -234,12 +234,25 @@ import VueCookies from 'vue-cookies'
           }
           this.cards = []
           let flex_val = [6,6,5,7]
+          let images = [
+            "https://cdn.pixabay.com/photo/2022/07/01/13/31/salad-dressing-7295630_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2016/07/12/08/12/oatmeal-raisin-cookies-1511599_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2015/12/08/19/08/steak-1083567_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2015/07/26/21/39/deviled-eggs-861773_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2020/01/17/10/18/meat-loaf-4772659_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2011/03/30/10/28/apple-pie-6007_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2019/11/07/13/05/waffle-4608843_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2014/04/14/20/45/scalloped-324243_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2016/10/25/13/43/stollen-1768907_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2020/03/09/17/11/macaroni-4916444_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2016/02/05/15/34/pasta-1181189_960_720.jpg"
+          ]
 
           if (Object.values(recommendation).length != 0) {
             for (let index = 0; index < Object.values(recommendation.n_recipe_id).length; index++) {
               let card = { id: recommendation.n_recipe_id[index],
               title: recommendation.s_recipe_title[index],
-              src: 'https://cdn.vuetifyjs.com/images/cards/house.jpg',
+              src: images[index%10],
               flex: flex_val[index%4],
               ingredients:recommendation.array_ingredients[index],
               directions:recommendation.s_directions[index]}

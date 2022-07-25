@@ -39,10 +39,10 @@ Functions:
 """
 
 
-@app.route("/reco", methods=["GET"])
-def loadReco():
-  cooky.reco = Recommender(cooky.db, True)
-  return "success", 200
+# @app.route("/reco", methods=["GET"])
+# def loadReco():
+#   cooky.reco = Recommender(cooky.db, True)
+#   return "success", 200
 
 @app.route("/explore", methods=["GET"])
 def explore():
@@ -127,6 +127,8 @@ def loadPantry():
   #           qty: 3
   #         }
   #       ]
+
+
   session = request.args.get('session', None)
 
   # sync session
