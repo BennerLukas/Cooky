@@ -20,6 +20,16 @@ class Cooky:
         self.db.write_sql2table(s_sql)
         return True
 
+    def get_rating(self, n_recipe_id):
+        s_sql = f"SELECT * FROM ratings WHERE n_user_id = {self.n_user_id} AND n_recipe_id = {n_recipe_id};"
+        df = self.db.get_data_from_table("ratings", b_full_table=False, s_query=s_sql)
+        return df
+
+    def get_avg_rating(self, n_recipe_id):
+        s_sql = f"SELECT AVG(rating) FROM recos WHERE n_recipe_id = {n_recipe_id};"
+        df = self.db.get_data_from_table("ratings", b_full_table=False, s_query=s_sql)
+        return df
+
     def add_user(self, s_username):
 
         # add user
@@ -173,16 +183,16 @@ if __name__ == "__main__":
     # cooky.usage()
     # cooky.add_user("Hans")
     cooky.n_user_id = 8961
-    # for i in range(0, 150):
-    #     try:
-    #         cooky.add_item2stock(i, 10)
-    #     except:
-    #         logging.debug("Exception triggered")
-    #         continue
-    # cooky.reduce_stock(1, 1)
-    # print(cooky.get_current_stock().head())
-    # meals = cooky.meal_reco_by_pantry()
-    # meals2 = cooky.meal_reco_without_pantry()
-    # cooky.cook_meal(meals.n_recipe_id.to_list()[0])
+    for i in range(0, 150):
+        try:
+            cooky.add_item2stock(i, 10)
+        except:
+            logging.debug("Exception triggered")
+            continue
+    cooky.reduce_stock(1, 1)
+    print(cooky.get_current_stock().head())
+    meals = cooky.meal_reco_by_pantry()
+    meals2 = cooky.meal_reco_without_pantry()
+    cooky.cook_meal(meals.n_recipe_id.to_list()[0])
     cooky.add_rating(10, 2)
     pass

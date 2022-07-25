@@ -22,8 +22,8 @@ class DataBase:
     alchemy_connection = None
     psycopg2_connection = None
 
-    # dataset_file_path = "./data/part_dataset.csv"
-    dataset_file_path = "./data/big_part_dataset.csv"
+    dataset_file_path = "./data/part_dataset.csv"
+    # dataset_file_path = "./data/big_part_dataset.csv"
 
     def __init__(self, db_init=True):
         self.connect()
@@ -136,40 +136,15 @@ class DataBase:
         df.columns = ["n_recipe_id", "s_recipe_title", "array_ingredients", "s_directions", "s_link",
                       "s_source", "array_NER"]
         df_recipes = df.set_index("n_recipe_id")
+        df_recipes = df_recipes.reset_index(drop=True)
+        df_recipes.index.names = ["n_recipe_id"]
         self.write_df2table(df_recipes, table_name="recipes")
 
         logging.info(df_recipes.head())
         return df_recipes
 
-    def dump_ingredients(self, df_recipes):
-
-        # make ingredients a list
-        df_recipes.array_ingredients = df_recipes.array_ingredients.apply(eval)
-
-        # extract all raw ingredients into separate df
-        df_ingredients = df_recipes.explode("array_ingredients")[["array_ingredients"]]
-        df_ingredients = df_ingredients.reset_index()
-
-        ingredient_inputs = df_ingredients.array_ingredients.to_list()
-        model = FoodModel("chambliss/distilbert-for-food-extraction")
-
-        output = model.extract_foods(ingredient_inputs)
-
-        ingredients_raw_output = [x["Ingredient"] for x in output]
-        ingredients_cleaned = list()
-        for x in ingredients_raw_output:
-            if x:  # is not empty
-                text = ""
-                for x_part in x:
-                    text += x_part["text"] + " "
-                ingredients_cleaned.append(text)
-            else:
-                ingredients_cleaned.append(None)
-
-        if df_ingredients.shape[0] != len(ingredients_cleaned):
-            raise
-
-        df_ingredients["s_ingredient"] = ingredients_cleaned
+    def get_quantities(self, df_recipes, df_ingredients, df_items):
+        # Deprecated!!!
 
         # get cleaned measurements
         raw_measurements = list()
@@ -253,14 +228,42 @@ class DataBase:
         df_ingredients["f_amount_needed"] = f_amounts_needed
         df_ingredients["s_unit_type"] = s_unit_types
 
-        # get unique ingredients and put it into items table
-        df_items = df_ingredients[["s_ingredient", "s_unit_type"]].drop_duplicates()
-        df_items = df_items.rename({"s_ingredient": "s_item_name"})
-        df_items.index.names = ["n_item_id"]
+        return df_recipes, df_ingredients, df_items
 
-        self.write_df2table(df_items, table_name="items")
+    def dump_ingredients(self, df_recipes):
 
+        # make ingredients a list
+        df_recipes.array_ingredients = df_recipes.array_ingredients.apply(eval)
+        df_recipes["n_recipe_id"] = df_recipes.index
+
+        # extract all raw ingredients into separate df
+        items = set()
+        ingredients_dict = dict()
+        ingredient_name = list()
+        ingredient_recpie_id = list()
+        ingredients_list = df_recipes[["array_NER", "n_recipe_id"]]
+        for recipe_ingredient, n_recipe_id in zip(ingredients_list.array_NER, ingredients_list.n_recipe_id):
+            ingredients = recipe_ingredient.replace("[", "").replace("]", "").split(", ")
+            for ingredient in ingredients:
+                items.add(ingredient)
+                ingredient_name.append(ingredient)
+                ingredient_recpie_id.append(n_recipe_id)
+
+        df_items = pd.DataFrame(list(items), columns=["s_item_name"])
+        df_items["n_item_id"] = df_items.index
+
+        data = list()
+        data.append(ingredient_recpie_id)
+        data.append(ingredient_name)
+        df_ingredients = pd.DataFrame(data).transpose()
+        df_ingredients.columns = ["n_recipe_id", "s_ingredient_name"]
+
+        df_ingredients = df_ingredients.merge(df_items, how="left", left_on=["s_ingredient_name"], right_on=["s_item_name"])
+        df_ingredients = df_ingredients.drop(["s_item_name"], axis=1)
         df_ingredients.index.names = ["n_ingredient_id"]
+        df_ingredients["s_unit_type"] = "<not_specified>"
+        df_ingredients["f_amount_needed"] = 1
+        self.write_df2table(df_items, table_name="items")
         self.write_df2table(df_ingredients, table_name="ingredients")
 
         return df_ingredients
