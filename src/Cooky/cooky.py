@@ -4,7 +4,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 from database import DataBase
-from recomender import Recommender
+from recommender import Recommender
 
 
 @dataclass
