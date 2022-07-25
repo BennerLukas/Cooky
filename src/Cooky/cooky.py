@@ -21,21 +21,30 @@ class Cooky:
         if init_db:
             self.db.write_sql2table(f"ALTER TABLE ratings ADD PRIMARY KEY (n_user_id, n_recipe_id);")
 
-    # TODO: fetch rating from db to pass to client
-    def get_rating(self):
-        pass
 
     def add_rating(self, n_rating_value, n_recipe_id):
         s_sql = f" INSERT INTO ratings(n_user_id, n_rating, n_recipe_id) VALUES ('{self.n_user_id}', '{n_recipe_id}', '{n_rating_value}');"
         self.db.write_sql2table(s_sql)
         return True
-
+    #new
+    def get_rating(self, n_recipe_id):
+        s_sql = f"SELECT * FROM ratings WHERE n_user_id = {self.n_user_id} AND n_recipe_id = {n_recipe_id};"
+        df = self.db.get_data_from_table("ratings", b_full_table=False, s_query=s_sql)
+        return df
+    #new
+    def get_avg_rating(self, n_recipe_id):
+        s_sql = f"SELECT AVG(rating) FROM recos WHERE n_recipe_id = {n_recipe_id};"
+        df = self.db.get_data_from_table("ratings", b_full_table=False, s_query=s_sql)
+        return df
+    
+    #new
     def select_ingredients(self, n_recipe_id):
         # Checks if a given user-id exists in the DB
         s_sql = f" SELECT * FROM ingredients WHERE n_recipe_id = {n_recipe_id};"
         df = self.db.get_data_from_table("ingredients", b_full_table=False, s_query=s_sql)
         return df
 
+    #new
     def check_user(self, user_id):
         # Checks if a given user-id exists in the DB
         s_sql = f" SELECT * FROM users WHERE n_user_id = {user_id};"
@@ -216,19 +225,5 @@ if __name__ == "__main__":
             continue
     cooky.reduce_stock(1, 1)
     print(cooky.get_current_stock().head())
-
-    # meals1 = cooky.meal_reco_by_pantry().to_dict()
-    # print("meals1: ", meals1)
-    # recipe_ids1 = meals1["n_recipe_id"].values()
-    # recipes1 = cooky.get_recipes(recipe_ids1).to_json()
-    # print("Reco by pantry:", recipes1)
-
-    # meals2 = cooky.meal_reco_without_pantry().to_dict()
-    # print("meals2: ", meals2)
-    # recipe_ids2 = meals2["n_recipe_id"].values()
-    # recipes2 = cooky.get_recipes(recipe_ids2).to_json()
-    # print("Reco without pantry:", recipes2)
-
-    #ERROR: cooky.cook_meal(meals.n_recipe_id.to_list()[0])
     cooky.add_rating(10, 2)
     pass
