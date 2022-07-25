@@ -254,7 +254,7 @@ import VueCookies from 'vue-cookies'
               title: recommendation.s_recipe_title[index],
               src: images[index%10],
               flex: flex_val[index%4],
-              ingredients:recommendation.array_ingredients[index],
+              ingredients:recommendation.array_NER[index],
               directions:recommendation.s_directions[index]}
               this.cards.push(card)
             } 
