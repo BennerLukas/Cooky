@@ -48,7 +48,7 @@ class Recommender:
 
     def train_als(self):
         # Collaborative Filtering mit Matrixfaktorisierung unter Verwendung von Alternating Least Squares
-        self.create_spark_session("lukas")
+        self.create_spark_session()
 
         df = self.db.get_data_from_table("ratings", b_full_table=True)
 

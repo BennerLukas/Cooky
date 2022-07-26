@@ -126,8 +126,6 @@ import VueCookies from 'vue-cookies'
                 this.all_items = response.data["all"]
                 this.pantry_items = response.data["pantry"]
                 //this.all_items = this.processItems(all_items)
-                console.log(response)
-                console.log(1)
                 this.processPantry()
               }
             })
