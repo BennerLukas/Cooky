@@ -277,7 +277,8 @@ import VueCookies from 'vue-cookies'
 
 
           // images are hard coded as to not expose any API keys. We recommend using the Bing Image Search Api with the recipe title as an input. Take any of the returned URLs as a showcase image.
-          var session = VueCookies.isKey("session")
+          var session = VueCookies.get("session")
+          
           if (session == 99) {
           var images = [
             "https://cdn.pixabay.com/photo/2022/07/01/13/31/salad-dressing-7295630_960_720.jpg",
@@ -351,6 +352,7 @@ import VueCookies from 'vue-cookies'
               if (response.status == 202) {
                 this.on_success.text = "Items deducted from pantry. Enjoy!"
                 this.on_success.snackbar = true
+                window.location.href = "/"
               }
             })
             .catch(error => console.log(error)
