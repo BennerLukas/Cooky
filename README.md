@@ -21,3 +21,8 @@ Dataset download [here](https://recipenlg.cs.put.poznan.pl/dataset) and unzip it
 
 ### Remarks
 Food_extractor is part of FoodBert and not developed by this group. Original can be found [here](https://github.com/chambliss/foodbert) and [here](https://huggingface.co/chambliss/distilbert-for-food-extraction?text=1+large+whole+chicken).
+
+### Documentation
+
+The PDF with the project report is in the folder project-report.
+It includes the One-Pager which documents the contribution of each team member.
