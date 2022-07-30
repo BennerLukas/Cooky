@@ -17,3 +17,9 @@ npm run build
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+'''
+./src/Cooky/api.py development
+(base) [user@cooky]$ npm run serve
+
+'''

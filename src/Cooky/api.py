@@ -54,19 +54,24 @@ def explore():
   pantry = int(request.args.get('pantry', 0))
   # sync session
   cooky.n_user_id = session
-  meals = cooky.meal_reco_without_pantry().to_dict()
-
-  # With Pantry Recommendation
-  pantry_rec = cooky.meal_reco_by_pantry()
-  print(pantry_rec.n_recipe_id.to_list())
-  pantry_recipes = cooky.get_recipes(pantry_rec.n_recipe_id.to_list())
+  # meals = cooky.meal_reco_without_pantry().to_dict()
 
 
   # Without Pantry Recommendation
   all_rec = cooky.meal_reco_without_pantry()
-  print(all_rec.n_recipe_id.to_list())
+  # print(all_rec.n_recipe_id.to_list())
   all_recipes = cooky.get_recipes(all_rec.n_recipe_id.to_list())
-    
+
+  #  Intuition: only the recipes that are already being recommended should be considered for recommendation by pantry
+  # For this, there is no need to go through all meals to get the candidates
+  # instead, we pass a list of possible recipes and check only for those, this should reduce the load on the database and improve performance as well
+  potential_candidates = all_recipes.n_recipe_id.to_list()
+
+  # With Pantry Recommendation
+  pantry_rec = cooky.meal_reco_by_pantry(potential_candidates)
+  # print(pantry_rec.n_recipe_id.to_list())
+  pantry_recipes = cooky.get_recipes(pantry_rec.n_recipe_id.to_list())
+  
   return jsonify({"all":all_recipes.to_dict(),"pantry":pantry_recipes.to_dict()}), 200
 
 @app.route("/explore/ingredients", methods=["GET"])
@@ -172,6 +177,34 @@ def addItem():
   cooky.add_item2stock(item_id, item_qty)
 
   return 'success', 202
+
+@app.route("/pantry/cook", methods=["GET"])
+def cookDish():
+  session = request.args.get('session', None)
+  n_recipe_id = request.args.get('recipe_id', None)
+
+  # sync session
+  cooky.n_user_id = session
+
+  # add item
+  cooky.cook_meal(n_recipe_id)
+
+  return 'success', 202
+
+
+@app.route("/explore/rating", methods=["GET"])
+def getRating():
+  session = request.args.get('session', None)
+  n_recipe_id = request.args.get('recipe_id', None)
+
+  # sync session
+  cooky.n_user_id = session
+
+  # get rating
+  rating = cooky.get_avg_rating(n_recipe_id).avg[0]
+  if rating == False:
+    rating = float(0)
+  return jsonify({"rating":rating}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)

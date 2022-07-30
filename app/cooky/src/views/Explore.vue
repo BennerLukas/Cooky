@@ -126,19 +126,38 @@
                   </v-btn>
 
 
-                  <v-spacer></v-spacer>
 
-                  <v-btn color="white" icon>
-                    <v-icon>mdi-dots-vertical</v-icon>
-                  </v-btn>
+
+
                   
               </v-app-bar>
 
               <v-card-title>
                 <h1>{{detail.title}}</h1>
               </v-card-title>
-          </v-img>
 
+              <v-btn
+                  class="ma-2"
+                  outlined
+                  color="white"
+                  @click="cookDish(detail.id)"
+                  v-if="tab"
+                  >Cook This Dish</v-btn>
+
+              
+              <v-rating
+                hover
+                background-color="grey"
+                color="white"
+                empty-icon="mdi-star-outline"
+                full-icon="mdi-star"
+                half-icon="mdi-star-half-full"
+                length="5"
+                size="30"
+                :value=detail.rating
+              ></v-rating>
+
+              </v-img>
 
         <v-list three-line>
           
@@ -170,7 +189,23 @@
 
     </v-dialog>
 
+    <!-- Snackbar on Success -->
+    <v-snackbar
+      v-model="on_success.snackbar"
+      :timeout="on_success.timeout"
+    >
+      {{ on_success.text }}
 
+
+        <v-btn
+          color="blue"
+          text
+          @click="on_success.snackbar = false"
+        >
+          Close
+        </v-btn>
+
+    </v-snackbar>
 
 </div>
 </template>
@@ -194,7 +229,12 @@ import VueCookies from 'vue-cookies'
         response_cooky: {"n_recipe_id":{},"s_recipe_title":{},"array_ingredients":{},"s_directions":{},"s_link":{},"s_source":{},"array_NER":{}},//response json -> has all information needed for detail page as well
 
         detail: {
-          title: 'Dish Title', src: 'https://cdn.vuetifyjs.com/images/cards/train.jpg', directions: 'Description for this dish', ingredients: 'Recipe for this dish', rating: 5}
+        id: 0, title: 'Dish Title', src: 'https://cdn.vuetifyjs.com/images/cards/train.jpg', directions: 'Description for this dish', ingredients: 'Recipe for this dish', rating: 5},
+        on_success: {
+          snackbar: false,
+          text: "",
+          timeout: 2000,
+        } 
       }
     },
 
@@ -215,7 +255,7 @@ import VueCookies from 'vue-cookies'
 
       },
       loadRecommedations(session_id) {
-        axios.get('http://localhost:5000/explore?&session='+session_id)
+        axios.get('http://localhost:5000/explore?session='+session_id)
             .then(response => {
               if (response.status == 200) {
                 this.all_reco = response.data["all"]
@@ -234,7 +274,13 @@ import VueCookies from 'vue-cookies'
           }
           this.cards = []
           let flex_val = [6,6,5,7]
-          let images = [
+
+
+          // images are hard coded as to not expose any API keys. We recommend using the Bing Image Search Api with the recipe title as an input. Take any of the returned URLs as a showcase image.
+          var session = VueCookies.get("session")
+          
+          if (session == 99) {
+          var images = [
             "https://cdn.pixabay.com/photo/2022/07/01/13/31/salad-dressing-7295630_960_720.jpg",
             "https://cdn.pixabay.com/photo/2016/07/12/08/12/oatmeal-raisin-cookies-1511599_960_720.jpg",
             "https://cdn.pixabay.com/photo/2015/12/08/19/08/steak-1083567_960_720.jpg",
@@ -246,30 +292,72 @@ import VueCookies from 'vue-cookies'
             "https://cdn.pixabay.com/photo/2016/10/25/13/43/stollen-1768907_960_720.jpg",
             "https://cdn.pixabay.com/photo/2020/03/09/17/11/macaroni-4916444_960_720.jpg",
             "https://cdn.pixabay.com/photo/2016/02/05/15/34/pasta-1181189_960_720.jpg"
+          ]  
+          } else {
+          var images = [
+            "https://cdn.pixabay.com/photo/2016/01/26/00/53/potatoe-1161819_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2016/04/23/23/19/beef-1348517_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2021/04/01/11/50/asparagus-6141991_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2019/08/15/10/46/deep-fried-4407741_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2015/04/24/20/04/corn-bread-738244_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2014/05/23/23/17/dessert-352475_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2020/09/16/06/54/cookies-5575588_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2010/12/13/10/13/chocolate-2554_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2016/11/06/23/24/broccoli-1804446_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2016/11/18/17/42/barbecue-1836053_960_720.jpg",
+            "https://cdn.pixabay.com/photo/2016/11/18/17/42/barbecue-1836053_960_720.jpg"
           ]
-
+          }
+          
           if (Object.values(recommendation).length != 0) {
             for (let index = 0; index < Object.values(recommendation.n_recipe_id).length; index++) {
               let card = { id: recommendation.n_recipe_id[index],
               title: recommendation.s_recipe_title[index],
               src: images[index%10],
               flex: flex_val[index%4],
-              ingredients:recommendation.array_ingredients[index],
+              ingredients:recommendation.array_NER[index],
               directions:recommendation.s_directions[index]}
               this.cards.push(card)
             } 
           }
       },
-      itemClick(id) {
+      async itemClick(id) {
+        let session_id = VueCookies.get("session")
+        await axios.get('http://localhost:5000/explore/rating?session='+session_id+'&recipe_id='+id)
+            .then(response => {
+              if (response.status == 200) {
+                this.detail.rating = response.data['rating']/2
+                console.log(this.detail.rating)
+              }
+            })
+
         this.dialog = true
+        this.detail.id = id
         this.detail.title = this.cards.filter(dish => dish.id === id)[0].title 
         this.detail.src = this.cards.filter(dish => dish.id === id)[0].src 
         this.detail.directions = this.cards.filter(dish => dish.id === id)[0].directions 
         this.detail.ingredients = this.cards.filter(dish => dish.id === id)[0].ingredients 
+
         //fetch description and recipe from db to present
         // update detail object
         //this.detail = {fetched object}
       },
+      cookDish(n_recipe_id) {
+        console.log("cooking")
+
+        let session_id = VueCookies.get("session")
+
+        axios.get('http://localhost:5000/pantry/cook?session='+session_id+'&recipe_id='+n_recipe_id)
+            .then(response => {
+              if (response.status == 202) {
+                this.on_success.text = "Items deducted from pantry. Enjoy!"
+                this.on_success.snackbar = true
+                window.location.href = "/"
+              }
+            })
+            .catch(error => console.log(error)
+            )
+      }
     },
     beforeMount(){
     this.onload()

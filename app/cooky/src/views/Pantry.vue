@@ -14,7 +14,7 @@
         <!-- Dropdown item -->
         <v-select
           v-model="selectedItem"
-          :items="Object.values(all_items.s_ingredient)"
+          :items="Object.values(all_items.s_item_name)"
           label="Outlined style"
           outlined
         ></v-select>
@@ -36,20 +36,6 @@
         ></v-text-field>
         </v-col>
       </v-row>
-
-<!-- <v-text-field
-        v-model="newItemName"
-        @click:append="addItem"
-        @keyup.enter="addItem"
-          class="pa-3"
-          outlined
-          hide-details
-          clearable
-          label="Add Item"
-          append-icon="mdi-plus"
-        ></v-text-field> -->
-
-
 
       <div
        v-for="item in items"
@@ -140,7 +126,6 @@ import VueCookies from 'vue-cookies'
                 this.all_items = response.data["all"]
                 this.pantry_items = response.data["pantry"]
                 //this.all_items = this.processItems(all_items)
-                
                 this.processPantry()
               }
             })
@@ -172,7 +157,7 @@ import VueCookies from 'vue-cookies'
         // Check if input is valid
         if (this.qty > 0 && this.selectedItem != "") {
           // get the item id from input
-          let item_index = this.getKeyByValue(this.all_items.s_ingredient, this.selectedItem)
+          let item_index = this.getKeyByValue(this.all_items.s_item_name, this.selectedItem)
 
           // create new Item object
           let newItem = {
@@ -215,7 +200,7 @@ import VueCookies from 'vue-cookies'
           let ingredient_index = this.getKeyByValue(this.all_items.n_item_id, this.pantry_items.n_item_id[index])
           var item = {
             id: this.pantry_items.n_item_id[index],//item id
-            title: this.all_items.s_ingredient[ingredient_index], //is in all items and must be fetched via item id
+            title: this.all_items.s_item_name[ingredient_index], //is in all items and must be fetched via item id
             qty: this.pantry_items.f_amount_in_stock[index]
           }
           this.items.push(item);
