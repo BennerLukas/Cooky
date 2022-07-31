@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 import logging
 import pandas as pd
-from gevent import idle
+
+# from gevent import idle
 
 logging.basicConfig(level=logging.INFO)
 
@@ -89,7 +90,7 @@ class Cooky:
             if len(id_list) == 1:
                 s_sql = f"SELECT * FROM recipes where n_recipe_id  = {id_list[0]};"
                 df = self.db.get_data_from_table("recipes", b_full_table=False, s_query=s_sql)
-            else:    
+            else:
                 s_sql = f"SELECT * FROM recipes where n_recipe_id in {tuple(id_list)};"
                 df = self.db.get_data_from_table("recipes", b_full_table=False, s_query=s_sql)
             return df
@@ -99,7 +100,7 @@ class Cooky:
     def reduce_stock(self, n_item_id, n_amount_to_reduce):
         s_sql = f"SELECT * FROM pantry WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
         df = self.db.get_data_from_table("pantry", b_full_table=False, s_query=s_sql)
-        print("Amount: ",df.f_amount_in_stock)
+        print("Amount: ", df.f_amount_in_stock)
         if len(df.f_amount_in_stock) != 1:
             raise
         new_amount = df.f_amount_in_stock.to_list()[0] - float(n_amount_to_reduce)
@@ -109,7 +110,6 @@ class Cooky:
         else:
             s_sql = f"UPDATE pantry SET f_amount_in_stock = {new_amount}  WHERE n_item_id = {n_item_id} AND n_user_id = {self.n_user_id};"
             self.db.write_sql2table(s_sql)
-
 
     def cook_meal(self, n_recipe_id):  # remove stock
         s_sql = f"SELECT * FROM ingredients WHERE n_recipe_id = {n_recipe_id};"
@@ -129,7 +129,7 @@ class Cooky:
 
         # For every recipe, get the ingredients
         # for recipe_id in recipe_ids:
-        for recipe_id in potential_candidates: 
+        for recipe_id in potential_candidates:
             # Get recipes -> Not all recipes are needed, just those that are already recommended tho!
             s_sql = f"SELECT * FROM ingredients WHERE n_recipe_id = {recipe_id};"
             df_needed_ingredients = self.db.get_data_from_table("ingredients", b_full_table=False, s_query=s_sql)
@@ -140,7 +140,7 @@ class Cooky:
 
             # the old version used n_ingredient_id which does not map to the table items and thus results in nothing
             for ingredient in df_needed_ingredients.n_item_id.to_list():
-            # for ingredient in df_needed_ingredients.n_ingredient_id.to_list():
+                # for ingredient in df_needed_ingredients.n_ingredient_id.to_list():
                 if ingredient in my_stock.n_item_id.to_list():
                     amount = df_needed_ingredients.loc[df_needed_ingredients["n_item_id"] == ingredient].f_amount_needed
                     # print('Amount: ', amount)
@@ -234,8 +234,9 @@ if __name__ == "__main__":
             continue
     cooky.reduce_stock(1, 1)
     print(cooky.get_current_stock().head())
-    meals = cooky.meal_reco_by_pantry()
     meals2 = cooky.meal_reco_without_pantry()
+    meals = cooky.meal_reco_by_pantry()
+
     cooky.cook_meal(meals.n_recipe_id.to_list()[0])
     cooky.add_rating(10, 2)
     pass

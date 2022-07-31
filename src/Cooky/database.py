@@ -146,6 +146,8 @@ class DataBase:
 
     def get_quantities(self, df_recipes, df_ingredients, df_items):
         # Deprecated!!!
+        logging.error("This function is not compatible with data preprocessing variant B (NER) only possible with FoodBERT")
+        return False
 
         # get cleaned measurements
         raw_measurements = list()
@@ -153,7 +155,7 @@ class DataBase:
         f_amounts_needed = list()
         s_unit_types = list()
 
-        for item, raw_ingredient in zip(ingredients_cleaned, ingredient_inputs):
+        for item, raw_ingredient in zip(df_items, df_ingredients):
             if item is not None:
                 for item_part in item.split(" "):
                     raw_ingredient = raw_ingredient.replace(item_part, "")
