@@ -2,8 +2,16 @@
 
 #  Automatic Recipe Suggestion
 
+- online recipes
+- user rating
+- custom recommendations
+- virtual pantry for enhanced functionalities
+
+For more information see ```docs``` folder
 
 ## Usage
+
+
 
 ### Development: 
 
@@ -24,5 +32,5 @@ Food_extractor is part of FoodBert and not developed by this group. Original can
 
 ### Documentation
 
-The PDF with the project report is in the folder project-report.
+The PDF with the project report is in the folder docs.
 It includes the One-Pager which documents the contribution of each team member.
