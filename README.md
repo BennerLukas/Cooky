@@ -1,6 +1,10 @@
+<div
+align="center">
 <img width="313" alt="Logo_Cooky2" src="https://user-images.githubusercontent.com/46084416/168781713-ce8fdb9e-aea9-4dfc-b0f6-c4c8a4dff6b5.png">
-
+</div>
 #  Automatic Recipe Suggestion
+
+The main aim of the project is to build a user-friendly application that allows users to synchronise their personal pantry and receive tailored recipe suggestions. 
 
 - online recipes
 - user rating
@@ -11,6 +15,21 @@ For more information see ```docs``` folder
 
 ## Usage
 
+### Database
+```
+docker container run -p 5432:5432 --name cooky -e POSTGRES_PASSWORD=1234 postgres:12.2 
+```
+
+### Server
+```
+Python3 ./src/Cooky/api.py development
+```
+
+### Client
+```
+cd ./app/cooky
+npm run serve
+```
 
 
 ### Development: 
