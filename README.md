@@ -22,12 +22,13 @@ docker container run -p 5432:5432 --name cooky -e POSTGRES_PASSWORD=1234 postgre
 
 ### Server
 ```
-Python3 ./src/Cooky/api.py development
+python3 ./src/Cooky/api.py development
 ```
 
 ### Client
 ```
 cd ./app/cooky
+npm install
 npm run serve
 ```
 
